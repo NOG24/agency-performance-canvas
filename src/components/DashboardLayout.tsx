@@ -12,7 +12,7 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
   userType,
-  brandName = userType === 'agency' ? 'Agency Dashboard' : 'Performance Dashboard',
+  brandName = userType === 'agency' ? 'NOG Dashboard' : 'NOG Performance Dashboard',
   brandLogo = '/placeholder.svg'
 }) => {
   return (
@@ -27,7 +27,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       </main>
       <footer className="border-t py-4 bg-background">
         <div className="container mx-auto px-4 md:px-6 text-center text-sm text-muted-foreground">
-          <p>© 2025 {brandName} | Powered by Performance Dashboard</p>
+          <p>© 2025 {brandName} | Powered by NOG Performance</p>
         </div>
       </footer>
     </div>

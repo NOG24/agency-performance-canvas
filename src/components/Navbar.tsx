@@ -23,7 +23,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ 
   userType, 
   brandLogo = '/placeholder.svg', 
-  brandName = 'Agency Dashboard',
+  brandName = 'NOG Dashboard',
   primaryColor = 'var(--primary)'
 }) => {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ const Navbar: React.FC<NavbarProps> = ({
           <Link to={userType === 'agency' ? '/agency-dashboard' : '/client-dashboard'} className="flex items-center gap-2">
             <img 
               src={brandLogo} 
-              alt="Logo" 
+              alt="NOG Logo" 
               className="h-8 w-8 md:h-10 md:w-10"
             />
             <span className="font-semibold text-lg md:text-xl">{brandName}</span>
@@ -65,13 +65,13 @@ const Navbar: React.FC<NavbarProps> = ({
                 to="/agency-dashboard/clients" 
                 className="text-sm font-medium hover:underline"
               >
-                Clients
+                Clientes
               </Link>
               <Link 
                 to="/agency-dashboard/branding" 
                 className="text-sm font-medium hover:underline"
               >
-                Branding
+                Personalização
               </Link>
             </>
           )}
@@ -81,13 +81,13 @@ const Navbar: React.FC<NavbarProps> = ({
                 to="/client-dashboard" 
                 className="text-sm font-medium hover:underline"
               >
-                Overview
+                Visão Geral
               </Link>
               <Link 
                 to="/client-dashboard/campaigns" 
                 className="text-sm font-medium hover:underline"
               >
-                Campaigns
+                Campanhas
               </Link>
             </>
           )}
@@ -100,18 +100,18 @@ const Navbar: React.FC<NavbarProps> = ({
                 <Avatar className="h-9 w-9">
                   <AvatarImage src="" />
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {userType === 'agency' ? 'AD' : 'CL'}
+                    {userType === 'agency' ? 'NG' : 'CL'}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Perfil</DropdownMenuItem>
+              <DropdownMenuItem>Configurações</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
