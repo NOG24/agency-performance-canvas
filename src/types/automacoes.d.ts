@@ -16,7 +16,7 @@ export interface Automacao {
   clienteNome: string;
   campanhasIds: string[];
   status: StatusAutomacao;
-  mensagemPersonalizada: string;
+  mensagemPersonalizada?: string; // Changed to optional with "?"
 }
 
 export interface HistoricoExecucao {
