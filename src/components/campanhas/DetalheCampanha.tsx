@@ -170,6 +170,16 @@ const DetalheCampanha: React.FC<DetalheCampanhaProps> = ({ tipoUsuario }) => {
     return new Date(data).toLocaleDateString('pt-BR');
   };
 
+  // Função para converter dados simples para o formato esperado pelo GráficoEvolução
+  const converterParaDadoDiario = (dados: { data: string; valor: number }[], tipo: string) => {
+    return dados.map(item => ({
+      data: item.data,
+      leads: tipo === 'leads' ? item.valor : 0,
+      custoTotal: tipo === 'custo' ? item.valor : 0,
+      receita: tipo === 'receita' ? item.valor : 0
+    }));
+  };
+
   if (carregando) {
     return (
       <div className="space-y-4">
@@ -292,30 +302,30 @@ const DetalheCampanha: React.FC<DetalheCampanhaProps> = ({ tipoUsuario }) => {
               <CardContent>
                 {metricaAtual === 'leads' && (
                   <GraficoEvolucao 
-                    dados={campanha.leadsHistorico}
+                    dados={converterParaDadoDiario(campanha.leadsHistorico, 'leads')}
                     titulo="Evolução de Leads"
-                    metrica="valor"
+                    metrica="leads"
                   />
                 )}
                 {metricaAtual === 'cliques' && (
                   <GraficoEvolucao 
-                    dados={campanha.cliquesHistorico}
+                    dados={converterParaDadoDiario(campanha.cliquesHistorico, 'leads')}
                     titulo="Evolução de Cliques"
-                    metrica="valor"
+                    metrica="leads"
                   />
                 )}
                 {metricaAtual === 'impressoes' && (
                   <GraficoEvolucao 
-                    dados={campanha.impressoesHistorico}
+                    dados={converterParaDadoDiario(campanha.impressoesHistorico, 'leads')}
                     titulo="Evolução de Impressões"
-                    metrica="valor"
+                    metrica="leads"
                   />
                 )}
                 {metricaAtual === 'custo' && (
                   <GraficoEvolucao 
-                    dados={campanha.custoHistorico}
+                    dados={converterParaDadoDiario(campanha.custoHistorico, 'custo')}
                     titulo="Evolução de Custo"
-                    metrica="valor"
+                    metrica="custoTotal"
                   />
                 )}
               </CardContent>
