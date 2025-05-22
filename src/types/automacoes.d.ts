@@ -3,6 +3,8 @@ export type TipoAutomacao = 'email' | 'dashboard';
 export type FrequenciaAutomacao = 'diaria' | 'semanal' | 'mensal';
 export type StatusAutomacao = 'ativa' | 'pausada';
 export type StatusExecucao = 'sucesso' | 'falha';
+export type TipoGatilho = 'gasto_excessivo' | 'cpl_alto' | 'ctr_baixo' | 'roas_baixo';
+export type AcaoAutomacao = 'alerta' | 'email' | 'notificacao';
 
 export interface Automacao {
   id: string;
@@ -16,7 +18,12 @@ export interface Automacao {
   clienteNome: string;
   campanhasIds: string[];
   status: StatusAutomacao;
-  mensagemPersonalizada?: string; // Changed to optional with "?"
+  mensagemPersonalizada?: string;
+  
+  // Extended properties for automation triggers
+  gatilho?: TipoGatilho;
+  valorLimite?: number;
+  acao?: AcaoAutomacao;
 }
 
 export interface HistoricoExecucao {

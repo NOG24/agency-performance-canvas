@@ -1,208 +1,280 @@
 
 import React, { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { 
-  FileText, 
-  BarChart, 
-  Mail, 
-  Download,
-  Calendar,
-  Users,
-  CheckCircle,
-  PieChart,
-  LineChart
-} from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckIcon, Download, FileText, Clock, ChevronRight } from "lucide-react";
+import { DateRange } from "react-day-picker";
+import ReportPDFView from '@/components/relatorios/ReportPDFView';
+import ReportHistoryTable from '@/components/relatorios/ReportHistoryTable';
+import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { FormRelatorioPersonalizado } from '@/components/relatorios/FormRelatorioPersonalizado';
-import { ModelosDisponiveis } from '@/components/relatorios/ModelosDisponiveis';
-import { HistoricoRelatorios } from '@/components/relatorios/HistoricoRelatorios';
-import { EnviarRelatorioDialog } from '@/components/relatorios/EnviarRelatorioDialog';
 
-interface ExportarRelatoriosPageProps {
-  userType: 'agency' | 'client';
+interface Cliente {
+  id: string;
+  nome: string;
+  email: string;
 }
 
-const ExportarRelatoriosPage: React.FC<ExportarRelatoriosPageProps> = ({ userType }) => {
-  const { toast } = useToast();
-  const [relatorioSelecionado, setRelatorioSelecionado] = useState<string | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
+interface Campanha {
+  id: string;
+  nome: string;
+  clienteId: string;
+}
 
-  const handleExportarPDF = (tipo: string) => {
-    toast({
-      title: "Gerando relatório",
-      description: "Seu relatório está sendo gerado e será baixado em instantes.",
-    });
-    
-    // Simulamos o download após um pequeno delay
-    setTimeout(() => {
-      toast({
-        title: "Relatório pronto",
-        description: "Seu relatório foi gerado com sucesso!",
-      });
-    }, 2000);
+interface Report {
+  id: string;
+  clienteNome: string;
+  periodo: {
+    inicio: string;
+    fim: string;
   };
+  dataEnvio: string;
+  status: 'enviado' | 'agendado' | 'erro';
+  destinatarios: string[];
+  arquivoUrl?: string;
+}
 
-  const handleEnviarEmail = (dados: any) => {
+const ExportarRelatoriosPage: React.FC = () => {
+  const { toast } = useToast();
+  
+  // Estados do componente
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date()
+  });
+  const [selectedClient, setSelectedClient] = useState<string>('');
+  const [selectedView, setSelectedView] = useState<string>('templates');
+  const [showReportPreview, setShowReportPreview] = useState(false);
+  
+  // Mock data
+  const clientes: Cliente[] = [
+    { id: '1', nome: 'Empresa ABC', email: 'contato@abc.com' },
+    { id: '2', nome: 'XYZ Ltda', email: 'contato@xyz.com' },
+    { id: '3', nome: 'Consultoria 123', email: 'contato@123consultoria.com' },
+  ];
+  
+  const campanhas: Campanha[] = [
+    { id: '1', nome: 'Facebook Leads', clienteId: '1' },
+    { id: '2', nome: 'Google Search', clienteId: '1' },
+    { id: '3', nome: 'Instagram Stories', clienteId: '2' },
+    { id: '4', nome: 'LinkedIn Ads', clienteId: '2' },
+    { id: '5', nome: 'YouTube Campaign', clienteId: '3' },
+  ];
+  
+  const relatoriosEnviados: Report[] = [
+    {
+      id: '1',
+      clienteNome: 'Empresa ABC',
+      periodo: {
+        inicio: '2025-01-01',
+        fim: '2025-01-31'
+      },
+      dataEnvio: '2025-02-01T10:30:00',
+      status: 'enviado',
+      destinatarios: ['contato@abc.com', 'gerente@abc.com']
+    },
+    {
+      id: '2',
+      clienteNome: 'XYZ Ltda',
+      periodo: {
+        inicio: '2025-01-01',
+        fim: '2025-01-31'
+      },
+      dataEnvio: '2025-02-02T11:15:00',
+      status: 'enviado',
+      destinatarios: ['contato@xyz.com']
+    },
+    {
+      id: '3',
+      clienteNome: 'Consultoria 123',
+      periodo: {
+        inicio: '2025-01-15',
+        fim: '2025-02-14'
+      },
+      dataEnvio: '2025-02-15T09:00:00',
+      status: 'erro',
+      destinatarios: ['contato@123consultoria.com']
+    }
+  ];
+  
+  // Templates de relatórios
+  const reportTemplates = [
+    {
+      id: 'basic',
+      name: 'Relatório Básico',
+      description: 'Relatório simples com KPIs principais e gráficos de evolução.',
+      icon: <FileText className="h-10 w-10 text-blue-500" />,
+    },
+    {
+      id: 'complete',
+      name: 'Relatório Completo',
+      description: 'Relatório detalhado com todos os dados de performance, análise de campanha e recomendações.',
+      icon: <FileText className="h-10 w-10 text-green-500" />,
+      recommended: true,
+    },
+    {
+      id: 'executive',
+      name: 'Relatório Executivo',
+      description: 'Resumo executivo focado em resultados de negócio e ROI.',
+      icon: <FileText className="h-10 w-10 text-purple-500" />,
+    }
+  ];
+  
+  // Handlers
+  const handleGenerateReport = () => {
     toast({
-      title: "Enviando relatório",
-      description: `Enviando relatório para ${dados.destinatarios.length} destinatários.`,
+      title: "Relatório gerado com sucesso",
+      description: "O relatório foi gerado e está pronto para download.",
     });
-    
-    // Simulamos o envio após um pequeno delay
-    setTimeout(() => {
-      setOpenDialog(false);
-      
-      toast({
-        title: "Relatório enviado",
-        description: "O relatório foi enviado com sucesso para os destinatários.",
-      });
-    }, 2000);
+    setShowReportPreview(true);
+  };
+  
+  const handleDownloadReport = () => {
+    toast({
+      title: "Download iniciado",
+      description: "O download do relatório foi iniciado.",
+    });
+  };
+  
+  const handleShareReport = () => {
+    toast({
+      title: "Link compartilhável",
+      description: "Um link para o relatório foi copiado para a área de transferência.",
+    });
+  };
+  
+  const handleViewReport = (reportId: string) => {
+    setShowReportPreview(true);
+  };
+  
+  const handleDownloadHistoryReport = (reportId: string) => {
+    toast({
+      title: "Download iniciado",
+      description: "O download do relatório foi iniciado.",
+    });
+  };
+  
+  const handleResendReport = (reportId: string) => {
+    toast({
+      title: "Relatório reenviado",
+      description: "O relatório foi reenviado para os destinatários.",
+    });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Relatórios</h1>
-          <p className="text-muted-foreground">
-            Exporte ou envie relatórios personalizados de desempenho
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => handleExportarPDF('completo')}>
-            <FileText className="mr-2 h-4 w-4" /> Exportar Completo
-          </Button>
-          <Button onClick={() => setOpenDialog(true)}>
-            <Mail className="mr-2 h-4 w-4" /> Enviar Relatório
-          </Button>
-        </div>
-      </div>
-
-      <Tabs defaultValue="personalizado" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="personalizado" className="flex items-center">
-            <BarChart className="mr-2 h-4 w-4" />
-            Relatório Personalizado
-          </TabsTrigger>
-          <TabsTrigger value="modelos" className="flex items-center">
-            <PieChart className="mr-2 h-4 w-4" />
-            Modelos
-          </TabsTrigger>
-          <TabsTrigger value="historico" className="flex items-center">
-            <Calendar className="mr-2 h-4 w-4" />
-            Histórico
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="personalizado" className="space-y-4">
-          <FormRelatorioPersonalizado 
-            onExportar={handleExportarPDF} 
-            onEnviar={() => setOpenDialog(true)}
-            userType={userType}
-          />
-        </TabsContent>
-        
-        <TabsContent value="modelos" className="space-y-4">
-          <ModelosDisponiveis 
-            onSelecionarModelo={(id) => {
-              setRelatorioSelecionado(id);
-              setOpenDialog(true);
-            }}
-          />
-        </TabsContent>
-        
-        <TabsContent value="historico" className="space-y-4">
-          <HistoricoRelatorios 
-            onVisualizar={(id) => handleExportarPDF('historico')} 
-            userType={userType}
-          />
-        </TabsContent>
-      </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <LineChart className="mr-2 h-5 w-5" />
-            Relatórios Inteligentes
-          </CardTitle>
-          <CardDescription>
-            Nosso sistema adiciona automaticamente insights estratégicos aos seus relatórios
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <h3 className="font-medium">Tendências Automáticas</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Análise automática de tendências positivas e negativas com base nos dados históricos.
-              </p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <h3 className="font-medium">Comparativos Inteligentes</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Compare automaticamente o desempenho atual com períodos anteriores.
-              </p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <h3 className="font-medium">Recomendações</h3>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Sugestões de melhoria com base nos desvios de performance identificados.
-              </p>
-            </div>
+    <div className="container mx-auto p-6">
+      {showReportPreview ? (
+        <ReportPDFView
+          clientName={clientes.find(c => c.id === selectedClient)?.nome || "Cliente"}
+          agencyName="NOG Performance"
+          period={{
+            start: dateRange?.from || new Date(),
+            end: dateRange?.to || new Date()
+          }}
+          onDownload={handleDownloadReport}
+          onShare={handleShareReport}
+        />
+      ) : (
+        <>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Relatórios</h1>
+            <Button onClick={() => setShowReportPreview(true)}>Visualizar Exemplo</Button>
           </div>
           
-          <div className="bg-muted p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-5 w-5 text-primary" />
-              <h3 className="font-medium">Exemplo de Insight Automático</h3>
-            </div>
-            <div className="flex flex-col gap-2 text-sm">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-emerald-100 text-emerald-800">Positivo</Badge>
-                <p>"O CPC reduziu 23% nas últimas 2 semanas, indicando melhoria na relevância dos anúncios."</p>
+          <Tabs value={selectedView} onValueChange={setSelectedView}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="templates">Gerar Relatório</TabsTrigger>
+              <TabsTrigger value="history">Histórico</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="templates">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1 space-y-6">
+                  <Card>
+                    <CardContent className="pt-6 space-y-4">
+                      <h2 className="text-lg font-medium mb-4">Configurar Relatório</h2>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Cliente</label>
+                        <Select value={selectedClient} onValueChange={setSelectedClient}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {clientes.map(cliente => (
+                              <SelectItem key={cliente.id} value={cliente.id}>
+                                {cliente.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Período</label>
+                        <DateRangePicker value={dateRange} onChange={setDateRange} />
+                      </div>
+                      
+                      <Button 
+                        className="w-full mt-4" 
+                        onClick={handleGenerateReport}
+                        disabled={!selectedClient || !dateRange?.from || !dateRange?.to}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Gerar Relatório
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="lg:col-span-2">
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-medium">Escolha o Modelo de Relatório</h2>
+                    
+                    {reportTemplates.map((template) => (
+                      <div 
+                        key={template.id}
+                        className="flex items-start gap-4 p-4 border rounded-lg hover:border-primary cursor-pointer transition-all"
+                        onClick={() => {}}
+                      >
+                        <div className="shrink-0">{template.icon}</div>
+                        <div className="flex-grow">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">{template.name}</h3>
+                            {template.recommended && (
+                              <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                                Recomendado
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-amber-100 text-amber-800">Atenção</Badge>
-                <p>"A taxa de conversão caiu 5% em relação ao mês anterior. Recomendamos revisar as landing pages."</p>
+            </TabsContent>
+            
+            <TabsContent value="history">
+              <div className="space-y-6">
+                <h2 className="text-lg font-medium">Histórico de Relatórios</h2>
+                
+                <ReportHistoryTable
+                  reports={relatoriosEnviados}
+                  onViewReport={handleViewReport}
+                  onDownloadReport={handleDownloadHistoryReport}
+                  onResendReport={handleResendReport}
+                />
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-blue-100 text-blue-800">Oportunidade</Badge>
-                <p>"O canal que mais cresceu foi Instagram (+45%). Considere aumentar o orçamento deste canal."</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <EnviarRelatorioDialog 
-        open={openDialog}
-        onOpenChange={setOpenDialog}
-        onEnviar={handleEnviarEmail}
-        relatorioSelecionadoId={relatorioSelecionado}
-      />
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
     </div>
   );
 };

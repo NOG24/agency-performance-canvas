@@ -1,364 +1,560 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Clock, 
-  Zap, 
-  Mail, 
-  Calendar, 
-  Plus, 
-  Trash, 
-  Edit, 
-  UserCheck, 
-  MailCheck,
-  ClipboardList
-} from 'lucide-react';
-import AutomacaoForm from '@/components/automacoes/AutomacaoForm';
-import ListaAutomacoes from '@/components/automacoes/ListaAutomacoes';
-import HistoricoExecucoes from '@/components/automacoes/HistoricoExecucoes';
-import { Automacao, HistoricoExecucao, FrequenciaAutomacao, StatusAutomacao, TipoAutomacao, StatusExecucao } from '@/types/automacoes';
+import { Automacao, HistoricoExecucao, TipoAutomacao, FrequenciaAutomacao, StatusAutomacao, TipoGatilho, AcaoAutomacao } from '@/types/automacoes';
+import AutomationBoard from '@/components/automacoes/AutomationBoard';
+import TriggerRuleCard from '@/components/automacoes/TriggerRuleCard';
+import AlertNotificationModal from '@/components/automacoes/AlertNotificationModal';
 
-interface AutomacoesPageProps {
-  userType: 'agency' | 'client';
-}
-
-// Mock data
-const mockAutomacoes: Automacao[] = [
-  {
-    id: '1',
-    nome: 'Relatório Mensal - Cliente ABC',
+// This is a mock component that would be replaced with actual API calls
+const AutomacoesPage: React.FC = () => {
+  const { toast } = useToast();
+  
+  // Estado para os modais
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingAutomacao, setEditingAutomacao] = useState<Automacao | null>(null);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  
+  // Estados para as automações e histórico
+  const [automacoes, setAutomacoes] = useState<Automacao[]>([]);
+  const [historico, setHistorico] = useState<HistoricoExecucao[]>([]);
+  const [alertInfo, setAlertInfo] = useState({
+    title: '',
+    message: '',
+    type: 'cpl_alto' as TipoGatilho | 'success',
+    campaignName: '',
+    metric: '',
+    value: 0,
+    threshold: 0
+  });
+  
+  // Estado para o formulário de nova automação
+  const [formData, setFormData] = useState<{
+    nome: string;
+    tipo: TipoAutomacao;
+    frequencia: FrequenciaAutomacao;
+    clienteId: string;
+    clienteNome: string;
+    destinatarios: string[];
+    campanhasIds: string[];
+    status: StatusAutomacao;
+    mensagemPersonalizada: string;
+    gatilho?: TipoGatilho;
+    valorLimite?: number;
+    acao?: AcaoAutomacao;
+  }>({
+    nome: '',
     tipo: 'email',
     frequencia: 'mensal',
-    ultimaExecucao: '2023-05-15T10:30:00Z',
-    proximaExecucao: '2023-06-15T10:30:00Z',
-    destinatarios: ['cliente@empresa.com', 'gerente@empresa.com'],
-    clienteId: '123',
-    clienteNome: 'Cliente ABC',
-    campanhasIds: ['camp1', 'camp2'],
+    clienteId: '',
+    clienteNome: '',
+    destinatarios: [],
+    campanhasIds: [],
     status: 'ativa',
-    mensagemPersonalizada: 'Segue o relatório mensal de desempenho das campanhas.',
-  },
-  {
-    id: '2',
-    nome: 'Resumo Semanal - Cliente XYZ',
-    tipo: 'email',
-    frequencia: 'semanal',
-    ultimaExecucao: '2023-05-20T14:00:00Z',
-    proximaExecucao: '2023-05-27T14:00:00Z',
-    destinatarios: ['diretor@xyz.com'],
-    clienteId: '456',
-    clienteNome: 'Cliente XYZ',
-    campanhasIds: ['camp3'],
-    status: 'ativa',
-    mensagemPersonalizada: 'Confira os resultados semanais das suas campanhas.',
-  },
-  {
-    id: '3',
-    nome: 'Alerta de Desempenho - Cliente DEF',
-    tipo: 'email',
-    frequencia: 'diaria',
-    ultimaExecucao: '2023-05-22T08:00:00Z',
-    proximaExecucao: '2023-05-23T08:00:00Z',
-    destinatarios: ['marketing@def.com'],
-    clienteId: '789',
-    clienteNome: 'Cliente DEF',
-    campanhasIds: ['camp4', 'camp5', 'camp6'],
-    status: 'pausada',
-    mensagemPersonalizada: 'Este é um relatório automático de desempenho das suas campanhas ativas.',
-  },
-];
-
-const mockHistorico: HistoricoExecucao[] = [
-  {
-    id: '1',
-    automacaoId: '1',
-    automacaoNome: 'Relatório Mensal - Cliente ABC',
-    dataExecucao: '2023-05-15T10:30:00Z',
-    status: 'sucesso',
-    destinatarios: ['cliente@empresa.com', 'gerente@empresa.com'],
-    mensagem: 'Relatório enviado com sucesso.',
-  },
-  {
-    id: '2',
-    automacaoId: '1',
-    automacaoNome: 'Relatório Mensal - Cliente ABC',
-    dataExecucao: '2023-04-15T10:30:00Z',
-    status: 'sucesso',
-    destinatarios: ['cliente@empresa.com', 'gerente@empresa.com'],
-    mensagem: 'Relatório enviado com sucesso.',
-  },
-  {
-    id: '3',
-    automacaoId: '2',
-    automacaoNome: 'Resumo Semanal - Cliente XYZ',
-    dataExecucao: '2023-05-20T14:00:00Z',
-    status: 'sucesso',
-    destinatarios: ['diretor@xyz.com'],
-    mensagem: 'Relatório enviado com sucesso.',
-  },
-  {
-    id: '4',
-    automacaoId: '2',
-    automacaoNome: 'Resumo Semanal - Cliente XYZ',
-    dataExecucao: '2023-05-13T14:00:00Z',
-    status: 'falha',
-    destinatarios: ['diretor@xyz.com'],
-    mensagem: 'Falha ao gerar o relatório: dados inconsistentes para a campanha camp3.',
-  },
-];
-
-const AutomacoesPage: React.FC<AutomacoesPageProps> = ({ userType }) => {
-  const { toast } = useToast();
-  const [automacoes, setAutomacoes] = useState<Automacao[]>(mockAutomacoes);
-  const [historico, setHistorico] = useState<HistoricoExecucao[]>(mockHistorico);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [automacaoEmEdicao, setAutomacaoEmEdicao] = useState<Automacao | null>(null);
-
-  // Cria uma nova automação
-  const handleNovaAutomacao = (dados: any) => {
-    const novaAutomacao: Automacao = {
-      ...dados,
-      id: `auto_${Math.random().toString(36).substr(2, 9)}`,
-      ultimaExecucao: null,
-      proximaExecucao: calcularProximaExecucao(dados.frequencia)
-    };
+    mensagemPersonalizada: '',
+  });
+  
+  // Mock data para clientes e campanhas
+  const clientes = [
+    { id: '1', nome: 'Empresa ABC', email: 'contato@abc.com' },
+    { id: '2', nome: 'XYZ Ltda', email: 'contato@xyz.com' },
+    { id: '3', nome: 'Consultoria 123', email: 'contato@123consultoria.com' },
+  ];
+  
+  const campanhas = [
+    { id: '1', nome: 'Facebook Leads', clienteId: '1' },
+    { id: '2', nome: 'Google Search', clienteId: '1' },
+    { id: '3', nome: 'Instagram Stories', clienteId: '2' },
+    { id: '4', nome: 'LinkedIn Ads', clienteId: '2' },
+    { id: '5', nome: 'YouTube Campaign', clienteId: '3' },
+  ];
+  
+  // Efeito para carregar dados fictícios na inicialização
+  useEffect(() => {
+    // Simulando carregamento de dados do backend
+    const mockAutomacoes: Automacao[] = [
+      {
+        id: '1',
+        nome: 'Relatório Mensal ABC',
+        tipo: 'email' as TipoAutomacao,
+        frequencia: 'mensal' as FrequenciaAutomacao,
+        ultimaExecucao: '2025-01-15T10:00:00',
+        proximaExecucao: '2025-02-15T10:00:00',
+        destinatarios: ['contato@abc.com'],
+        clienteId: '1',
+        clienteNome: 'Empresa ABC',
+        campanhasIds: ['1', '2'],
+        status: 'ativa' as StatusAutomacao,
+        mensagemPersonalizada: 'Aqui está o relatório mensal de performance da sua empresa.'
+      },
+      {
+        id: '2',
+        nome: 'Alerta de CPL Alto',
+        tipo: 'dashboard' as TipoAutomacao,
+        frequencia: 'diaria' as FrequenciaAutomacao,
+        ultimaExecucao: '2025-01-20T08:30:00',
+        proximaExecucao: '2025-01-21T08:30:00',
+        destinatarios: ['analista@nog.com'],
+        clienteId: '2',
+        clienteNome: 'XYZ Ltda',
+        campanhasIds: ['3', '4'],
+        status: 'ativa' as StatusAutomacao,
+        gatilho: 'cpl_alto' as TipoGatilho,
+        valorLimite: 50,
+        acao: 'alerta' as AcaoAutomacao
+      },
+      {
+        id: '3',
+        nome: 'Alerta de Gasto Excessivo',
+        tipo: 'dashboard' as TipoAutomacao,
+        frequencia: 'diaria' as FrequenciaAutomacao,
+        ultimaExecucao: '2025-01-19T09:00:00',
+        proximaExecucao: '2025-01-20T09:00:00',
+        destinatarios: ['gestao@nog.com'],
+        clienteId: '3',
+        clienteNome: 'Consultoria 123',
+        campanhasIds: ['5'],
+        status: 'ativa' as StatusAutomacao,
+        gatilho: 'gasto_excessivo' as TipoGatilho,
+        valorLimite: 1000,
+        acao: 'email' as AcaoAutomacao
+      }
+    ];
     
-    setAutomacoes([...automacoes, novaAutomacao]);
-    setIsDialogOpen(false);
+    const mockHistorico: HistoricoExecucao[] = [
+      {
+        id: '1',
+        automacaoId: '1',
+        automacaoNome: 'Relatório Mensal ABC',
+        dataExecucao: '2025-01-15T10:00:00',
+        status: 'sucesso' as StatusExecucao,
+        destinatarios: ['contato@abc.com'],
+        mensagem: 'Relatório enviado com sucesso.'
+      },
+      {
+        id: '2',
+        automacaoId: '2',
+        automacaoNome: 'Alerta de CPL Alto',
+        dataExecucao: '2025-01-20T08:30:00',
+        status: 'sucesso' as StatusExecucao,
+        destinatarios: ['analista@nog.com'],
+        mensagem: 'O CPL da campanha Instagram Stories está em R$ 65,30, acima do limite de R$ 50,00.'
+      },
+      {
+        id: '3',
+        automacaoId: '3',
+        automacaoNome: 'Alerta de Gasto Excessivo',
+        dataExecucao: '2025-01-19T09:00:00',
+        status: 'falha' as StatusExecucao,
+        destinatarios: ['gestao@nog.com'],
+        mensagem: 'Falha ao enviar o alerta por email. Tente novamente mais tarde.'
+      }
+    ];
     
-    toast({
-      title: "Automação criada",
-      description: `A automação "${dados.nome}" foi criada com sucesso.`,
+    setAutomacoes(mockAutomacoes);
+    setHistorico(mockHistorico);
+  }, []);
+  
+  // Funções para manipulação de automações
+  const handleCreateAutomation = () => {
+    setEditingAutomacao(null);
+    setFormData({
+      nome: '',
+      tipo: 'email',
+      frequencia: 'mensal',
+      clienteId: '',
+      clienteNome: '',
+      destinatarios: [],
+      campanhasIds: [],
+      status: 'ativa',
+      mensagemPersonalizada: ''
     });
+    setShowAddModal(true);
   };
-
-  // Edita uma automação existente
-  const handleEditarAutomacao = (dados: any) => {
-    const novasAutomacoes = automacoes.map(auto => 
-      auto.id === dados.id ? { ...auto, ...dados } : auto
-    );
-    
-    setAutomacoes(novasAutomacoes);
-    setAutomacaoEmEdicao(null);
-    setIsDialogOpen(false);
-    
-    toast({
-      title: "Automação atualizada",
-      description: `A automação "${dados.nome}" foi atualizada com sucesso.`,
+  
+  const handleEditAutomation = (automacao: Automacao) => {
+    setEditingAutomacao(automacao);
+    setFormData({
+      ...automacao,
+      mensagemPersonalizada: automacao.mensagemPersonalizada || ''
     });
+    setShowAddModal(true);
   };
-
-  // Exclui uma automação
-  const handleExcluirAutomacao = (id: string) => {
-    setAutomacoes(automacoes.filter(auto => auto.id !== id));
-    
-    toast({
-      title: "Automação excluída",
-      description: "A automação foi excluída com sucesso.",
-    });
-  };
-
-  // Alterna o status da automação (ativa/pausada)
-  const handleAlternarStatus = (id: string) => {
-    const novasAutomacoes = automacoes.map(auto => 
-      auto.id === id ? {
-        ...auto,
-        status: auto.status === 'ativa' ? 'pausada' : 'ativa' as StatusAutomacao
-      } : auto
-    );
-    
-    setAutomacoes(novasAutomacoes);
-    
-    const automacao = automacoes.find(auto => auto.id === id);
-    const novoStatus = automacao?.status === 'ativa' ? 'pausada' : 'ativa';
-    
-    toast({
-      title: `Automação ${novoStatus}`,
-      description: `A automação "${automacao?.nome}" foi ${novoStatus}.`,
-    });
-  };
-
-  // Calcula a próxima execução com base na frequência
-  const calcularProximaExecucao = (frequencia: FrequenciaAutomacao): string => {
-    const agora = new Date();
-    let proxima = new Date();
-    
-    switch (frequencia) {
-      case 'diaria':
-        proxima.setDate(agora.getDate() + 1);
-        proxima.setHours(8, 0, 0, 0); // 8:00 AM
-        break;
-      case 'semanal':
-        proxima.setDate(agora.getDate() + 7);
-        proxima.setHours(14, 0, 0, 0); // 2:00 PM
-        break;
-      case 'mensal':
-        proxima.setMonth(agora.getMonth() + 1);
-        proxima.setDate(1);
-        proxima.setHours(10, 0, 0, 0); // 10:00 AM
-        break;
-      default:
-        proxima.setDate(agora.getDate() + 1);
+  
+  const handleSaveAutomation = () => {
+    if (!formData.nome || !formData.clienteId || formData.campanhasIds.length === 0) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive"
+      });
+      return;
     }
     
-    return proxima.toISOString();
-  };
-
-  const handleExecutarAgora = (id: string) => {
-    const automacao = automacoes.find(auto => auto.id === id);
-    if (!automacao) return;
-    
-    // Simula a execução da automação
-    const dataExecucao = new Date().toISOString();
-    
-    // Adiciona ao histórico
-    const novoRegistro: HistoricoExecucao = {
-      id: `hist_${Math.random().toString(36).substr(2, 9)}`,
-      automacaoId: automacao.id,
-      automacaoNome: automacao.nome,
-      dataExecucao,
-      status: 'sucesso',
-      destinatarios: automacao.destinatarios,
-      mensagem: 'Relatório enviado com sucesso via execução manual.',
+    const newAutomacao: Automacao = {
+      ...formData,
+      id: editingAutomacao ? editingAutomacao.id : `new-${Date.now()}`,
+      ultimaExecucao: editingAutomacao ? editingAutomacao.ultimaExecucao : null,
+      proximaExecucao: new Date(Date.now() + 86400000).toISOString(), // Amanhã
     };
     
-    setHistorico([novoRegistro, ...historico]);
+    if (editingAutomacao) {
+      setAutomacoes(automacoes.map(a => a.id === editingAutomacao.id ? newAutomacao : a));
+      toast({
+        title: "Automação atualizada",
+        description: `A automação "${newAutomacao.nome}" foi atualizada com sucesso.`,
+      });
+    } else {
+      setAutomacoes([...automacoes, newAutomacao]);
+      toast({
+        title: "Automação criada",
+        description: `A automação "${newAutomacao.nome}" foi criada com sucesso.`,
+      });
+    }
     
-    // Atualiza a última execução da automação
-    const novasAutomacoes = automacoes.map(auto => 
-      auto.id === id ? {
-        ...auto,
-        ultimaExecucao: dataExecucao
-      } : auto
-    );
-    
-    setAutomacoes(novasAutomacoes);
+    setShowAddModal(false);
+  };
+  
+  const handleToggleAutomation = (id: string, active: boolean) => {
+    setAutomacoes(automacoes.map(a => {
+      if (a.id === id) {
+        return { ...a, status: active ? 'ativa' : 'pausada' };
+      }
+      return a;
+    }));
     
     toast({
-      title: "Automação executada",
-      description: `A automação "${automacao.nome}" foi executada manualmente com sucesso.`,
+      title: active ? "Automação ativada" : "Automação pausada",
+      description: `A automação foi ${active ? 'ativada' : 'pausada'} com sucesso.`,
     });
   };
+  
+  const handleShowAlert = () => {
+    setAlertInfo({
+      title: 'CPL Alto Detectado',
+      message: 'O CPL da campanha está significativamente acima do limite estabelecido.',
+      type: 'cpl_alto',
+      campaignName: 'Instagram Stories',
+      metric: 'CPL',
+      value: 65.30,
+      threshold: 50
+    });
+    setShowAlertModal(true);
+  };
+  
+  const getCampanhasPorCliente = (clienteId: string) => {
+    return campanhas.filter(c => c.clienteId === clienteId);
+  };
+  
+  const handleClienteChange = (clienteId: string) => {
+    const cliente = clientes.find(c => c.id === clienteId);
+    setFormData({
+      ...formData,
+      clienteId,
+      clienteNome: cliente ? cliente.nome : '',
+      campanhasIds: []
+    });
+  };
+  
+  const handleTipoChange = (tipo: TipoAutomacao) => {
+    const newForm = { ...formData, tipo };
+    
+    if (tipo === 'dashboard' && !newForm.gatilho) {
+      newForm.gatilho = 'cpl_alto';
+      newForm.acao = 'alerta';
+    } else if (tipo === 'email') {
+      delete newForm.gatilho;
+      delete newForm.valorLimite;
+      delete newForm.acao;
+    }
+    
+    setFormData(newForm);
+  };
+  
+  const emailAutomacoes = automacoes.filter(a => a.tipo === 'email');
+  const gatilhoAutomacoes = automacoes.filter(a => a.tipo === 'dashboard');
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Automações</h1>
-          <p className="text-muted-foreground">
-            Configure o envio automático de relatórios e alertas para seus clientes
-          </p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setAutomacaoEmEdicao(null)}>
-              <Plus className="mr-2 h-4 w-4" /> Nova Automação
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>
-                {automacaoEmEdicao ? 'Editar Automação' : 'Nova Automação'}
-              </DialogTitle>
-              <DialogDescription>
-                Configure os detalhes da automação para gerar e enviar relatórios automaticamente.
-              </DialogDescription>
-            </DialogHeader>
-            <AutomacaoForm 
-              automacaoInicial={automacaoEmEdicao}
-              onSalvar={automacaoEmEdicao ? handleEditarAutomacao : handleNovaAutomacao}
-              onCancelar={() => {
-                setAutomacaoEmEdicao(null);
-                setIsDialogOpen(false);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Automações</h1>
+        <Button onClick={handleCreateAutomation}>Nova Automação</Button>
       </div>
-
-      <Tabs defaultValue="ativas" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="ativas" className="flex items-center">
-            <Zap className="mr-2 h-4 w-4" />
-            Automações Ativas
-          </TabsTrigger>
-          <TabsTrigger value="historico" className="flex items-center">
-            <Clock className="mr-2 h-4 w-4" />
-            Histórico de Execuções
-          </TabsTrigger>
+      
+      <Tabs defaultValue="automacoes">
+        <TabsList className="mb-4">
+          <TabsTrigger value="automacoes">Automações Ativas</TabsTrigger>
+          <TabsTrigger value="historico">Histórico de Execuções</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="ativas" className="space-y-4">
-          <ListaAutomacoes 
+        <TabsContent value="automacoes">
+          <AutomationBoard 
             automacoes={automacoes}
-            onEditar={(automacao) => {
-              setAutomacaoEmEdicao(automacao);
-              setIsDialogOpen(true);
-            }}
-            onExcluir={handleExcluirAutomacao}
-            onAlternarStatus={handleAlternarStatus}
-            onExecutarAgora={handleExecutarAgora}
+            onCreateAutomation={handleCreateAutomation}
+            onEditAutomation={handleEditAutomation}
           />
         </TabsContent>
         
-        <TabsContent value="historico" className="space-y-4">
-          <HistoricoExecucoes historico={historico} />
+        <TabsContent value="historico">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Histórico de Execuções</h2>
+              <Button variant="outline" onClick={handleShowAlert}>Testar Alerta</Button>
+            </div>
+            
+            {historico.length === 0 ? (
+              <div className="text-center py-8 border rounded-lg">
+                <p className="text-muted-foreground">Nenhum histórico de execução encontrado.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {historico.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className={`p-4 border rounded-lg ${item.status === 'sucesso' ? 'border-green-200' : 'border-red-200'}`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium">{item.automacaoNome}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Executado em: {new Date(item.dataExecucao).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs font-medium ${
+                        item.status === 'sucesso' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.status === 'sucesso' ? 'Sucesso' : 'Falha'}
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-sm">{item.mensagem}</p>
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Enviado para: {item.destinatarios.join(', ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ClipboardList className="h-5 w-5" />
-            Informações sobre Automações
-          </CardTitle>
-          <CardDescription>
-            Entenda como funcionam as automações e como configurá-las
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center text-center p-4 border rounded-lg">
-              <Calendar className="h-8 w-8 text-primary mb-2" />
-              <h3 className="font-semibold mb-2">Frequência de Envio</h3>
-              <p className="text-sm text-muted-foreground">
-                Configure automações para envios diários, semanais ou mensais conforme a necessidade do cliente.
-              </p>
+      
+      {/* Modal de adicionar/editar automação */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{editingAutomacao ? 'Editar Automação' : 'Nova Automação'}</DialogTitle>
+            <DialogDescription>
+              {editingAutomacao 
+                ? 'Atualize os detalhes da sua automação abaixo.'
+                : 'Configure uma nova automação para envio de relatórios ou alertas de performance.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="tipo">Tipo de Automação</Label>
+              <Select
+                value={formData.tipo}
+                onValueChange={(value) => handleTipoChange(value as TipoAutomacao)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">Relatório Automático</SelectItem>
+                  <SelectItem value="dashboard">Gatilho de Performance</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex flex-col items-center text-center p-4 border rounded-lg">
-              <UserCheck className="h-8 w-8 text-primary mb-2" />
-              <h3 className="font-semibold mb-2">Destinatários Personalizados</h3>
-              <p className="text-sm text-muted-foreground">
-                Defina múltiplos destinatários para cada automação, incluindo diferentes stakeholders do cliente.
-              </p>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="nome">Nome da Automação</Label>
+              <Input
+                id="nome"
+                value={formData.nome}
+                onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                placeholder="Ex: Relatório Mensal de Performance"
+              />
             </div>
-            <div className="flex flex-col items-center text-center p-4 border rounded-lg">
-              <MailCheck className="h-8 w-8 text-primary mb-2" />
-              <h3 className="font-semibold mb-2">Relatórios Personalizados</h3>
-              <p className="text-sm text-muted-foreground">
-                Escolha quais campanhas incluir em cada relatório automatizado para personalizar a experiência.
-              </p>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="cliente">Cliente</Label>
+              <Select 
+                value={formData.clienteId}
+                onValueChange={handleClienteChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clientes.map((cliente) => (
+                    <SelectItem key={cliente.id} value={cliente.id}>
+                      {cliente.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {formData.clienteId && (
+              <div className="grid gap-2">
+                <Label>Campanhas</Label>
+                <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
+                  {getCampanhasPorCliente(formData.clienteId).length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhuma campanha disponível para este cliente.</p>
+                  ) : (
+                    getCampanhasPorCliente(formData.clienteId).map((campanha) => (
+                      <div key={campanha.id} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`campanha-${campanha.id}`}
+                          checked={formData.campanhasIds.includes(campanha.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({
+                                ...formData,
+                                campanhasIds: [...formData.campanhasIds, campanha.id]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                campanhasIds: formData.campanhasIds.filter(id => id !== campanha.id)
+                              });
+                            }
+                          }}
+                        />
+                        <Label
+                          htmlFor={`campanha-${campanha.id}`}
+                          className="text-sm cursor-pointer"
+                        >
+                          {campanha.nome}
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {formData.tipo === 'email' ? (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="frequencia">Frequência</Label>
+                  <Select
+                    value={formData.frequencia}
+                    onValueChange={(value) => setFormData({ ...formData, frequencia: value as FrequenciaAutomacao })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a frequência" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="diaria">Diária</SelectItem>
+                      <SelectItem value="semanal">Semanal</SelectItem>
+                      <SelectItem value="mensal">Mensal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="mensagemPersonalizada">Mensagem Personalizada</Label>
+                  <Textarea
+                    id="mensagemPersonalizada"
+                    value={formData.mensagemPersonalizada}
+                    onChange={(e) => setFormData({ ...formData, mensagemPersonalizada: e.target.value })}
+                    placeholder="Mensagem que será incluída no email com o relatório"
+                    rows={3}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="grid gap-2">
+                  <Label htmlFor="gatilho">Gatilho</Label>
+                  <Select
+                    value={formData.gatilho}
+                    onValueChange={(value) => setFormData({ ...formData, gatilho: value as TipoGatilho })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o gatilho" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cpl_alto">CPL Alto</SelectItem>
+                      <SelectItem value="gasto_excessivo">Gasto Excessivo</SelectItem>
+                      <SelectItem value="ctr_baixo">CTR Baixo</SelectItem>
+                      <SelectItem value="roas_baixo">ROAS Baixo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="valorLimite">Valor Limite</Label>
+                  <Input
+                    id="valorLimite"
+                    type="number"
+                    value={formData.valorLimite || ''}
+                    onChange={(e) => setFormData({ ...formData, valorLimite: Number(e.target.value) })}
+                    placeholder="Ex: 50 para CPL alto de R$ 50"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="acao">Ação</Label>
+                  <Select
+                    value={formData.acao}
+                    onValueChange={(value) => setFormData({ ...formData, acao: value as AcaoAutomacao })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a ação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="alerta">Apenas Alerta Visual</SelectItem>
+                      <SelectItem value="notificacao">Notificação no Painel</SelectItem>
+                      <SelectItem value="email">Enviar Email</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="status"
+                checked={formData.status === 'ativa'}
+                onCheckedChange={(checked) => setFormData({ ...formData, status: checked ? 'ativa' : 'pausada' })}
+              />
+              <Label htmlFor="status">Automação ativa</Label>
             </div>
           </div>
-        </CardContent>
-      </Card>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddModal(false)}>Cancelar</Button>
+            <Button onClick={handleSaveAutomation}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal de alerta */}
+      <AlertNotificationModal
+        open={showAlertModal}
+        onClose={() => setShowAlertModal(false)}
+        title={alertInfo.title}
+        message={alertInfo.message}
+        type={alertInfo.type as any}
+        campaignName={alertInfo.campaignName}
+        metric={alertInfo.metric}
+        value={alertInfo.value}
+        threshold={alertInfo.threshold}
+      />
     </div>
   );
 };

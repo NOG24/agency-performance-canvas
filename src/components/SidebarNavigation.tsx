@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -54,7 +55,10 @@ const NavMenuItem: React.FC<NavMenuItemProps> = ({
   const [isOpen, setIsOpen] = useState(isActive);
 
   // Verify if this menu item should be visible to this user type
-  if (onlyVisibleTo && !onlyVisibleTo.includes(userType as UserRole)) {
+  // Convert string to UserRole for type safety
+  const userRoleType = (userType === 'agency' ? 'admin' : 'client') as UserRole;
+  
+  if (onlyVisibleTo && !onlyVisibleTo.includes(userRoleType)) {
     return null;
   }
 
@@ -155,7 +159,7 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({ userType }) => {
       to: `${basePath}/clients`,
       icon: Users,
       label: "Clientes",
-      onlyVisibleTo: ['agency', 'admin', 'manager'] as UserRole[],
+      onlyVisibleTo: ['admin', 'manager'] as UserRole[],
       subItems: []
     },
     {
@@ -168,7 +172,7 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({ userType }) => {
       to: `${basePath}/automacoes`,
       icon: Zap,
       label: "Automações",
-      onlyVisibleTo: ['agency', 'admin', 'manager'] as UserRole[],
+      onlyVisibleTo: ['admin', 'manager'] as UserRole[],
       subItems: []
     },
     {

@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import I18nProvider from "./providers/I18nProvider";
 import { AppThemeProvider } from "./providers/ThemeProvider";
 import { AuthProvider } from "./providers/AuthProvider";
+import { UserRole } from "./utils/permissionsSystem";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -26,12 +27,12 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/agency-dashboard/*" element={
-                <ProtectedRoute requiredRole="admin">
+                <ProtectedRoute requiredRole="admin" as UserRole>
                   <AgencyDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/client-dashboard/*" element={
-                <ProtectedRoute requiredRole="client">
+                <ProtectedRoute requiredRole="client" as UserRole>
                   <ClientDashboard />
                 </ProtectedRoute>
               } />

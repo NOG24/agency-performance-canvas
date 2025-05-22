@@ -10,6 +10,8 @@ import ConfiguracaoWhiteLabel from '@/components/configuracoes/ConfiguracaoWhite
 import TabelaCampanhas from '@/components/campanhas/TabelaCampanhas';
 import DetalheCampanha from '@/components/campanhas/DetalheCampanha';
 import Observacoes from '@/components/observacoes/Observacoes';
+import AutomacoesPage from '@/pages/AutomacoesPage';
+import ExportarRelatoriosPage from '@/pages/ExportarRelatoriosPage';
 import { inicializarTema } from '@/utils/themeUtils';
 
 const AgencyDashboard: React.FC = () => {
@@ -24,6 +26,9 @@ const AgencyDashboard: React.FC = () => {
         <Route path="campanhas" element={<TabelaCampanhas tipoUsuario="agency" />} />
         <Route path="campanhas/:id" element={<DetalheCampanha tipoUsuario="agency" />} />
         <Route path="observacoes" element={<Observacoes tipoUsuario="agency" />} />
+        <Route path="automacoes" element={<AutomacoesPage />} />
+        <Route path="relatorios" element={<ExportarRelatoriosPage />} />
+        <Route path="relatorios/exportar" element={<ExportarRelatoriosPage />} />
         <Route path="configuracoes" element={<ConfiguracoesGerais tipoUsuario="agency" />} />
         <Route path="clients" element={<GerenciamentoClientes />} />
         <Route path="clients/:id" element={<DetalhesCliente />} />
