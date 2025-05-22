@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -34,13 +33,14 @@ import {
 import AutomacaoForm from '@/components/automacoes/AutomacaoForm';
 import ListaAutomacoes from '@/components/automacoes/ListaAutomacoes';
 import HistoricoExecucoes from '@/components/automacoes/HistoricoExecucoes';
+import { Automacao, HistoricoExecucao, FrequenciaAutomacao, StatusAutomacao, TipoAutomacao, StatusExecucao } from '@/types/automacoes';
 
 interface AutomacoesPageProps {
   userType: 'agency' | 'client';
 }
 
 // Mock data
-const mockAutomacoes = [
+const mockAutomacoes: Automacao[] = [
   {
     id: '1',
     nome: 'Relatório Mensal - Cliente ABC',
@@ -85,7 +85,7 @@ const mockAutomacoes = [
   },
 ];
 
-const mockHistorico = [
+const mockHistorico: HistoricoExecucao[] = [
   {
     id: '1',
     automacaoId: '1',
@@ -126,14 +126,14 @@ const mockHistorico = [
 
 const AutomacoesPage: React.FC<AutomacoesPageProps> = ({ userType }) => {
   const { toast } = useToast();
-  const [automacoes, setAutomacoes] = useState(mockAutomacoes);
-  const [historico, setHistorico] = useState(mockHistorico);
+  const [automacoes, setAutomacoes] = useState<Automacao[]>(mockAutomacoes);
+  const [historico, setHistorico] = useState<HistoricoExecucao[]>(mockHistorico);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [automacaoEmEdicao, setAutomacaoEmEdicao] = useState<any | null>(null);
+  const [automacaoEmEdicao, setAutomacaoEmEdicao] = useState<Automacao | null>(null);
 
   // Cria uma nova automação
   const handleNovaAutomacao = (dados: any) => {
-    const novaAutomacao = {
+    const novaAutomacao: Automacao = {
       ...dados,
       id: `auto_${Math.random().toString(36).substr(2, 9)}`,
       ultimaExecucao: null,
@@ -180,7 +180,7 @@ const AutomacoesPage: React.FC<AutomacoesPageProps> = ({ userType }) => {
     const novasAutomacoes = automacoes.map(auto => 
       auto.id === id ? {
         ...auto,
-        status: auto.status === 'ativa' ? 'pausada' : 'ativa'
+        status: auto.status === 'ativa' ? 'pausada' : 'ativa' as StatusAutomacao
       } : auto
     );
     
@@ -196,7 +196,7 @@ const AutomacoesPage: React.FC<AutomacoesPageProps> = ({ userType }) => {
   };
 
   // Calcula a próxima execução com base na frequência
-  const calcularProximaExecucao = (frequencia: string): string => {
+  const calcularProximaExecucao = (frequencia: FrequenciaAutomacao): string => {
     const agora = new Date();
     let proxima = new Date();
     
@@ -229,7 +229,7 @@ const AutomacoesPage: React.FC<AutomacoesPageProps> = ({ userType }) => {
     const dataExecucao = new Date().toISOString();
     
     // Adiciona ao histórico
-    const novoRegistro = {
+    const novoRegistro: HistoricoExecucao = {
       id: `hist_${Math.random().toString(36).substr(2, 9)}`,
       automacaoId: automacao.id,
       automacaoNome: automacao.nome,

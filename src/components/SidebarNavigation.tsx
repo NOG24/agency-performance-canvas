@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -27,6 +26,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { UserRole } from '@/utils/permissionsSystem';
 
 interface SidebarNavigationProps {
   userType: 'agency' | 'client';
@@ -38,7 +38,7 @@ interface NavMenuItemProps {
   label: string;
   isActive: boolean;
   subItems?: Array<{ to: string, label: string }>;
-  onlyVisibleTo?: Array<'agency' | 'client' | 'admin' | 'manager' | 'analyst'>;
+  onlyVisibleTo?: UserRole[];
   userType: 'agency' | 'client';
 }
 
@@ -54,7 +54,7 @@ const NavMenuItem: React.FC<NavMenuItemProps> = ({
   const [isOpen, setIsOpen] = useState(isActive);
 
   // Verify if this menu item should be visible to this user type
-  if (onlyVisibleTo && !onlyVisibleTo.includes(userType)) {
+  if (onlyVisibleTo && !onlyVisibleTo.includes(userType as UserRole)) {
     return null;
   }
 
@@ -155,7 +155,7 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({ userType }) => {
       to: `${basePath}/clients`,
       icon: Users,
       label: "Clientes",
-      onlyVisibleTo: ['agency', 'admin', 'manager'],
+      onlyVisibleTo: ['agency', 'admin', 'manager'] as UserRole[],
       subItems: []
     },
     {
@@ -168,7 +168,7 @@ const SidebarNavigation: React.FC<SidebarNavigationProps> = ({ userType }) => {
       to: `${basePath}/automacoes`,
       icon: Zap,
       label: "Automações",
-      onlyVisibleTo: ['agency', 'admin', 'manager'],
+      onlyVisibleTo: ['agency', 'admin', 'manager'] as UserRole[],
       subItems: []
     },
     {
