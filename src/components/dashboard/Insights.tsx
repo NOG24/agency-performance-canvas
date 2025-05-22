@@ -78,7 +78,7 @@ const Insights: React.FC<InsightsProps> = ({ dados, carregando = false }) => {
           texto: `Crescimento de ${Math.round(variacao)}% no volume de leads nos últimos dias. Continue com a estratégia atual.`,
           tipo: 'positivo'
         });
-      } else if (variação < -15) {
+      } else if (variacao < -15) {
         insights.push({
           texto: `Redução de ${Math.abs(Math.round(variacao))}% no volume de leads recentemente. Verifique alterações nas campanhas.`,
           tipo: 'negativo'

@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -88,18 +88,7 @@ const GraficoEvolucao: React.FC<GraficoEvolucaoProps> = ({
       </CardHeader>
       <CardContent className="p-0 sm:p-6">
         <div className="h-[350px] w-full">
-          <ChartContainer 
-            config={{
-              [metrica]: {
-                label: config.nomeLegenda,
-                color: config.corLinha,
-                theme: {
-                  light: config.corLinha,
-                  dark: config.corLinha,
-                }
-              }
-            }}
-          >
+          <ChartContainer>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={dadosFormatados}

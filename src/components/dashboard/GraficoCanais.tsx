@@ -99,18 +99,7 @@ const GraficoCanais: React.FC<GraficoCanaisProps> = ({
       </CardHeader>
       <CardContent className="p-0 sm:p-6">
         <div className="h-[350px] w-full">
-          <ChartContainer 
-            config={{
-              [metrica]: {
-                label: config.nome,
-                color: config.cor,
-                theme: {
-                  light: config.cor,
-                  dark: config.cor,
-                }
-              }
-            }}
-          >
+          <ChartContainer>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={dadosFormatados}

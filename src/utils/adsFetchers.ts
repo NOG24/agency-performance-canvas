@@ -1,12 +1,56 @@
 
 // Funções de simulação para obtenção de dados de plataformas de anúncios
 
+interface PlataformaDados {
+  plataforma: string;
+  leads: number;
+  custoTotal: number;
+  cpl: string;
+  cliques: number;
+  impressoes: number;
+  ctr: string;
+  conversoes: number;
+  receita: number;
+  campanhasAtivas: number;
+  dadosDiarios: DadoDiario[];
+}
+
+interface DadoDiario {
+  data: Date;
+  leads: number;
+  custoTotal: number;
+  cpl: string;
+  ctr: string;
+  conversoes: number;
+  receita: number;
+}
+
+interface DadosConsolidados {
+  totalLeads: number;
+  totalCusto: number;
+  cplMedio: string;
+  ctrMedio: string;
+  totalConversoes: number;
+  totalReceita: number;
+  totalCampanhasAtivas: number;
+  googleAds: PlataformaDados;
+  facebookAds: PlataformaDados;
+  tiktokAds: PlataformaDados;
+  dadosDiarios: {
+    data: Date;
+    leads: number;
+    custoTotal: number;
+    receita: number;
+  }[];
+  plataformas: PlataformaDados[];
+}
+
 /**
  * Simula a obtenção de dados do Google Ads
  * @param periodo Período em dias para obter os dados
  * @returns Dados simulados do Google Ads
  */
-export const fetchDadosGoogleAds = (periodo: number) => {
+export const fetchDadosGoogleAds = (periodo: number): Promise<PlataformaDados> => {
   return new Promise((resolve) => {
     // Simulando tempo de carregamento
     setTimeout(() => {
@@ -57,7 +101,7 @@ export const fetchDadosGoogleAds = (periodo: number) => {
  * @param periodo Período em dias para obter os dados
  * @returns Dados simulados do Facebook Ads
  */
-export const fetchDadosFacebookAds = (periodo: number) => {
+export const fetchDadosFacebookAds = (periodo: number): Promise<PlataformaDados> => {
   return new Promise((resolve) => {
     // Simulando tempo de carregamento
     setTimeout(() => {
@@ -108,7 +152,7 @@ export const fetchDadosFacebookAds = (periodo: number) => {
  * @param periodo Período em dias para obter os dados
  * @returns Dados simulados do TikTok Ads
  */
-export const fetchDadosTikTokAds = (periodo: number) => {
+export const fetchDadosTikTokAds = (periodo: number): Promise<PlataformaDados> => {
   return new Promise((resolve, reject) => {
     // Simulando tempo de carregamento
     setTimeout(() => {
@@ -165,7 +209,7 @@ export const fetchDadosTikTokAds = (periodo: number) => {
  * @param periodo Período em dias para obter os dados
  * @returns Dados consolidados de todas as plataformas
  */
-export const fetchDadosConsolidados = async (periodo: number) => {
+export const fetchDadosConsolidados = async (periodo: number): Promise<DadosConsolidados> => {
   try {
     const [googleAds, facebookAds, tiktokAds] = await Promise.all([
       fetchDadosGoogleAds(periodo),
@@ -182,19 +226,19 @@ export const fetchDadosConsolidados = async (periodo: number) => {
         receita: 0,
         campanhasAtivas: 0,
         dadosDiarios: []
-      }))
+      }) as PlataformaDados)
     ]);
 
     // Consolidar dados totais
-    const totalLeads = (googleAds.leads as number) + (facebookAds.leads as number) + (tiktokAds.leads as number);
-    const totalCusto = (googleAds.custoTotal as number) + (facebookAds.custoTotal as number) + (tiktokAds.custoTotal as number);
-    const totalConversoes = (googleAds.conversoes as number) + (facebookAds.conversoes as number) + (tiktokAds.conversoes as number);
-    const totalReceita = (googleAds.receita as number) + (facebookAds.receita as number) + (tiktokAds.receita as number);
-    const totalCampanhasAtivas = (googleAds.campanhasAtivas as number) + (facebookAds.campanhasAtivas as number) + (tiktokAds.campanhasAtivas as number);
+    const totalLeads = googleAds.leads + facebookAds.leads + tiktokAds.leads;
+    const totalCusto = googleAds.custoTotal + facebookAds.custoTotal + tiktokAds.custoTotal;
+    const totalConversoes = googleAds.conversoes + facebookAds.conversoes + tiktokAds.conversoes;
+    const totalReceita = googleAds.receita + facebookAds.receita + tiktokAds.receita;
+    const totalCampanhasAtivas = googleAds.campanhasAtivas + facebookAds.campanhasAtivas + tiktokAds.campanhasAtivas;
     
     // Consolidar CTR médio ponderado pelo número de impressões
-    const totalImpressoes = (googleAds.impressoes as number) + (facebookAds.impressoes as number) + (tiktokAds.impressoes as number);
-    const totalCliques = (googleAds.cliques as number) + (facebookAds.cliques as number) + (tiktokAds.cliques as number);
+    const totalImpressoes = googleAds.impressoes + facebookAds.impressoes + tiktokAds.impressoes;
+    const totalCliques = googleAds.cliques + facebookAds.cliques + tiktokAds.cliques;
     const ctrMedio = (totalCliques / totalImpressoes) * 100;
 
     // Consolidar CPL médio
@@ -205,9 +249,9 @@ export const fetchDadosConsolidados = async (periodo: number) => {
       const data = new Date();
       data.setDate(data.getDate() - (periodo - i - 1));
       
-      const googleDia = (googleAds.dadosDiarios as any[])[i];
-      const facebookDia = (facebookAds.dadosDiarios as any[])[i];
-      const tiktokDia = (tiktokAds.dadosDiarios as any[])[i] || { leads: 0, custoTotal: 0, receita: 0 };
+      const googleDia = googleAds.dadosDiarios[i];
+      const facebookDia = facebookAds.dadosDiarios[i];
+      const tiktokDia = tiktokAds.dadosDiarios[i] || { leads: 0, custoTotal: 0, receita: 0 };
 
       return {
         data: data,
