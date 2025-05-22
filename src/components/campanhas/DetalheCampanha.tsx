@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -173,7 +172,8 @@ const DetalheCampanha: React.FC<DetalheCampanhaProps> = ({ tipoUsuario }) => {
   // Função para converter dados simples para o formato esperado pelo GráficoEvolução
   const converterParaDadoDiario = (dados: { data: string; valor: number }[], tipo: string) => {
     return dados.map(item => ({
-      data: item.data,
+      // Convertendo a string de data para um objeto Date
+      data: new Date(item.data),
       leads: tipo === 'leads' ? item.valor : 0,
       custoTotal: tipo === 'custo' ? item.valor : 0,
       receita: tipo === 'receita' ? item.valor : 0
@@ -300,28 +300,28 @@ const DetalheCampanha: React.FC<DetalheCampanhaProps> = ({ tipoUsuario }) => {
                 </div>
               </CardHeader>
               <CardContent>
-                {metricaAtual === 'leads' && (
+                {metricaAtual === 'leads' && campanha && (
                   <GraficoEvolucao 
                     dados={converterParaDadoDiario(campanha.leadsHistorico, 'leads')}
                     titulo="Evolução de Leads"
                     metrica="leads"
                   />
                 )}
-                {metricaAtual === 'cliques' && (
+                {metricaAtual === 'cliques' && campanha && (
                   <GraficoEvolucao 
                     dados={converterParaDadoDiario(campanha.cliquesHistorico, 'leads')}
                     titulo="Evolução de Cliques"
                     metrica="leads"
                   />
                 )}
-                {metricaAtual === 'impressoes' && (
+                {metricaAtual === 'impressoes' && campanha && (
                   <GraficoEvolucao 
                     dados={converterParaDadoDiario(campanha.impressoesHistorico, 'leads')}
                     titulo="Evolução de Impressões"
                     metrica="leads"
                   />
                 )}
-                {metricaAtual === 'custo' && (
+                {metricaAtual === 'custo' && campanha && (
                   <GraficoEvolucao 
                     dados={converterParaDadoDiario(campanha.custoHistorico, 'custo')}
                     titulo="Evolução de Custo"
