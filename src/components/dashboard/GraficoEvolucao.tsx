@@ -80,6 +80,14 @@ const GraficoEvolucao: React.FC<GraficoEvolucaoProps> = ({
 
   const config = configs[metrica];
 
+  // Definindo o objeto config para o ChartContainer
+  const chartConfig = {
+    valor: {
+      label: config.nomeLegenda,
+      color: config.corLinha
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -88,7 +96,7 @@ const GraficoEvolucao: React.FC<GraficoEvolucaoProps> = ({
       </CardHeader>
       <CardContent className="p-0 sm:p-6">
         <div className="h-[350px] w-full">
-          <ChartContainer>
+          <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={dadosFormatados}

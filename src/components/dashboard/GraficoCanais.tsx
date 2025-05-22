@@ -91,6 +91,14 @@ const GraficoCanais: React.FC<GraficoCanaisProps> = ({
 
   const config = configs[metrica];
 
+  // Definindo o objeto config para o ChartContainer
+  const chartConfig = {
+    [metrica]: {
+      label: config.nome,
+      color: config.cor
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -99,7 +107,7 @@ const GraficoCanais: React.FC<GraficoCanaisProps> = ({
       </CardHeader>
       <CardContent className="p-0 sm:p-6">
         <div className="h-[350px] w-full">
-          <ChartContainer>
+          <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={dadosFormatados}
