@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
-import { Automacao, HistoricoExecucao, TipoAutomacao, FrequenciaAutomacao, StatusAutomacao, TipoGatilho, AcaoAutomacao } from '@/types/automacoes';
+import { Automacao, HistoricoExecucao, TipoAutomacao, FrequenciaAutomacao, StatusAutomacao, TipoGatilho, AcaoAutomacao, StatusExecucao } from '@/types/automacoes';
 import AutomationBoard from '@/components/automacoes/AutomationBoard';
 import TriggerRuleCard from '@/components/automacoes/TriggerRuleCard';
 import AlertNotificationModal from '@/components/automacoes/AlertNotificationModal';
@@ -50,7 +49,7 @@ const AutomacoesPage: React.FC = () => {
     mensagemPersonalizada: string;
     gatilho?: TipoGatilho;
     valorLimite?: number;
-    acao?: AcaoAutomacao;
+    acao: AcaoAutomacao;
   }>({
     nome: '',
     tipo: 'email',
@@ -61,6 +60,7 @@ const AutomacoesPage: React.FC = () => {
     campanhasIds: [],
     status: 'ativa',
     mensagemPersonalizada: '',
+    acao: 'email'
   });
   
   // Mock data para clientes e campanhas
@@ -85,48 +85,49 @@ const AutomacoesPage: React.FC = () => {
       {
         id: '1',
         nome: 'Relatório Mensal ABC',
-        tipo: 'email' as TipoAutomacao,
-        frequencia: 'mensal' as FrequenciaAutomacao,
+        tipo: 'email',
+        frequencia: 'mensal',
         ultimaExecucao: '2025-01-15T10:00:00',
         proximaExecucao: '2025-02-15T10:00:00',
         destinatarios: ['contato@abc.com'],
         clienteId: '1',
         clienteNome: 'Empresa ABC',
         campanhasIds: ['1', '2'],
-        status: 'ativa' as StatusAutomacao,
-        mensagemPersonalizada: 'Aqui está o relatório mensal de performance da sua empresa.'
+        status: 'ativa',
+        mensagemPersonalizada: 'Aqui está o relatório mensal de performance da sua empresa.',
+        acao: 'email'
       },
       {
         id: '2',
         nome: 'Alerta de CPL Alto',
-        tipo: 'dashboard' as TipoAutomacao,
-        frequencia: 'diaria' as FrequenciaAutomacao,
+        tipo: 'dashboard',
+        frequencia: 'diaria',
         ultimaExecucao: '2025-01-20T08:30:00',
         proximaExecucao: '2025-01-21T08:30:00',
         destinatarios: ['analista@nog.com'],
         clienteId: '2',
         clienteNome: 'XYZ Ltda',
         campanhasIds: ['3', '4'],
-        status: 'ativa' as StatusAutomacao,
-        gatilho: 'cpl_alto' as TipoGatilho,
+        status: 'ativa',
+        gatilho: 'cpl_alto',
         valorLimite: 50,
-        acao: 'alerta' as AcaoAutomacao
+        acao: 'alerta'
       },
       {
         id: '3',
         nome: 'Alerta de Gasto Excessivo',
-        tipo: 'dashboard' as TipoAutomacao,
-        frequencia: 'diaria' as FrequenciaAutomacao,
+        tipo: 'dashboard',
+        frequencia: 'diaria',
         ultimaExecucao: '2025-01-19T09:00:00',
         proximaExecucao: '2025-01-20T09:00:00',
         destinatarios: ['gestao@nog.com'],
         clienteId: '3',
         clienteNome: 'Consultoria 123',
         campanhasIds: ['5'],
-        status: 'ativa' as StatusAutomacao,
-        gatilho: 'gasto_excessivo' as TipoGatilho,
+        status: 'ativa',
+        gatilho: 'gasto_excessivo',
         valorLimite: 1000,
-        acao: 'email' as AcaoAutomacao
+        acao: 'email'
       }
     ];
     
@@ -136,7 +137,7 @@ const AutomacoesPage: React.FC = () => {
         automacaoId: '1',
         automacaoNome: 'Relatório Mensal ABC',
         dataExecucao: '2025-01-15T10:00:00',
-        status: 'sucesso' as StatusExecucao,
+        status: 'sucesso',
         destinatarios: ['contato@abc.com'],
         mensagem: 'Relatório enviado com sucesso.'
       },
@@ -145,7 +146,7 @@ const AutomacoesPage: React.FC = () => {
         automacaoId: '2',
         automacaoNome: 'Alerta de CPL Alto',
         dataExecucao: '2025-01-20T08:30:00',
-        status: 'sucesso' as StatusExecucao,
+        status: 'sucesso',
         destinatarios: ['analista@nog.com'],
         mensagem: 'O CPL da campanha Instagram Stories está em R$ 65,30, acima do limite de R$ 50,00.'
       },
@@ -154,7 +155,7 @@ const AutomacoesPage: React.FC = () => {
         automacaoId: '3',
         automacaoNome: 'Alerta de Gasto Excessivo',
         dataExecucao: '2025-01-19T09:00:00',
-        status: 'falha' as StatusExecucao,
+        status: 'falha',
         destinatarios: ['gestao@nog.com'],
         mensagem: 'Falha ao enviar o alerta por email. Tente novamente mais tarde.'
       }
@@ -176,7 +177,8 @@ const AutomacoesPage: React.FC = () => {
       destinatarios: [],
       campanhasIds: [],
       status: 'ativa',
-      mensagemPersonalizada: ''
+      mensagemPersonalizada: '',
+      acao: 'email'
     });
     setShowAddModal(true);
   };
@@ -185,7 +187,15 @@ const AutomacoesPage: React.FC = () => {
     setEditingAutomacao(automacao);
     setFormData({
       ...automacao,
-      mensagemPersonalizada: automacao.mensagemPersonalizada || ''
+      mensagemPersonalizada: automacao.mensagemPersonalizada || '',
+      tipo: automacao.tipo || 'email',
+      frequencia: automacao.frequencia || 'mensal',
+      clienteId: automacao.clienteId || '',
+      clienteNome: automacao.clienteNome || '',
+      destinatarios: automacao.destinatarios || [],
+      campanhasIds: automacao.campanhasIds || [],
+      status: automacao.status || 'ativa',
+      acao: automacao.acao
     });
     setShowAddModal(true);
   };
@@ -205,6 +215,7 @@ const AutomacoesPage: React.FC = () => {
       id: editingAutomacao ? editingAutomacao.id : `new-${Date.now()}`,
       ultimaExecucao: editingAutomacao ? editingAutomacao.ultimaExecucao : null,
       proximaExecucao: new Date(Date.now() + 86400000).toISOString(), // Amanhã
+      acao: formData.acao
     };
     
     if (editingAutomacao) {
@@ -274,7 +285,7 @@ const AutomacoesPage: React.FC = () => {
     } else if (tipo === 'email') {
       delete newForm.gatilho;
       delete newForm.valorLimite;
-      delete newForm.acao;
+      newForm.acao = 'email';
     }
     
     setFormData(newForm);

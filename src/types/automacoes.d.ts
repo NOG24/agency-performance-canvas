@@ -4,7 +4,7 @@ export type FrequenciaAutomacao = 'diaria' | 'semanal' | 'mensal';
 export type StatusAutomacao = 'ativa' | 'pausada';
 export type StatusExecucao = 'sucesso' | 'falha' | 'pendente' | 'em_andamento';
 export type TipoGatilho = 'gasto_excessivo' | 'cpl_alto' | 'ctr_baixo' | 'roas_baixo';
-export type AcaoAutomacao = 'alerta' | 'email' | 'notificacao';
+export type AcaoAutomacao = 'alerta' | 'email' | 'notificacao' | 'pausar' | 'notificar' | 'ajustar_orcamento';
 
 export interface Automacao {
   id: string;
@@ -13,7 +13,7 @@ export interface Automacao {
   regra?: string;
   campanha_id?: string;
   tipo_alerta?: 'email' | 'notificacao' | 'ambos';
-  acao: 'pausar' | 'notificar' | 'ajustar_orcamento' | 'email' | 'notificacao' | 'alerta';
+  acao: AcaoAutomacao;
   ativo?: boolean;
   condicao?: 'maior_que' | 'menor_que' | 'igual_a';
   valor_condicao?: number;
