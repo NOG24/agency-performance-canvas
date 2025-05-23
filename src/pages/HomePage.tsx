@@ -1,80 +1,142 @@
 
 import React from 'react';
-import Login from '../components/Login';
-import { Card, CardContent } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 
 const HomePage: React.FC = () => {
+  const { user } = useAuth();
+  
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted flex flex-col items-center justify-center p-4">
-      <div className="max-w-6xl w-full mx-auto">
-        <div className="flex flex-col md:flex-row gap-8 items-center">
-          <div className="flex-1 space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                NOG Performance
-              </h1>
-              <p className="text-xl text-muted-foreground">
-                Painel de gerenciamento de campanhas e resultados para agências de marketing digital e seus clientes.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-medium">Resultados em tempo real</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Métricas de campanhas atualizadas constantemente
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-medium">Observações e insights</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Comunicação transparente entre agência e cliente
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-medium">Personalização completa</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Adapte a interface com suas cores e marca
-                  </p>
-                </div>
-              </div>
-            </div>
+    <div className="flex flex-col min-h-screen">
+      {/* Header */}
+      <header className="border-b bg-background">
+        <div className="container mx-auto flex items-center justify-between h-16 px-4">
+          <div className="flex items-center gap-2">
+            <img 
+              src="/placeholder.svg" 
+              alt="NOG Performance" 
+              className="h-8 w-8"
+            />
+            <span className="font-semibold text-lg">NOG Performance</span>
           </div>
           
-          <div className="w-full max-w-md">
-            <Card className="border-neutral-200 shadow-lg transition-shadow hover:shadow-xl">
-              <CardContent className="p-0">
-                <Login />
-              </CardContent>
-            </Card>
+          <div className="flex items-center gap-2">
+            {user ? (
+              <Link to={user.role === 'admin' ? '/agency-dashboard' : '/client-dashboard'}>
+                <Button variant="default">
+                  Acessar Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/login">
+                <Button variant="default">
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
-      </div>
+      </header>
       
-      <footer className="mt-16 text-center text-sm text-muted-foreground">
-        <p>© 2025 NOG Performance. Todos os direitos reservados.</p>
+      {/* Hero Section */}
+      <section className="bg-muted py-20 px-4">
+        <div className="container mx-auto max-w-5xl text-center">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+            Plataforma de Gestão de Performance Digital
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Uma solução completa para agências de marketing e profissionais autônomos 
+            gerenciarem campanhas, analisarem resultados e otimizarem o desempenho digital.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/login">
+              <Button size="lg">
+                Começar Agora
+              </Button>
+            </Link>
+            <Button variant="outline" size="lg">
+              Conheça os Recursos
+            </Button>
+          </div>
+        </div>
+      </section>
+      
+      {/* Features */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">Principais Funcionalidades</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Dashboard de Resultados",
+                description: "Visualize todos os KPIs importantes das suas campanhas em um único lugar."
+              },
+              {
+                title: "Gestão de Campanhas",
+                description: "Acompanhe o desempenho de todas as suas campanhas de marketing digital."
+              },
+              {
+                title: "Relatórios Automáticos",
+                description: "Crie e envie relatórios personalizados para seus clientes automaticamente."
+              },
+              {
+                title: "Observações Inteligentes",
+                description: "Registre e compartilhe insights sobre as campanhas com sua equipe e clientes."
+              },
+              {
+                title: "White Label",
+                description: "Personalize a plataforma com a identidade visual da sua agência."
+              },
+              {
+                title: "Automações",
+                description: "Configure alertas e ações automáticas com base em gatilhos personalizados."
+              }
+            ].map((feature, index) => (
+              <div key={index} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* CTA */}
+      <section className="bg-primary text-primary-foreground py-16 px-4">
+        <div className="container mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4">Pronto para melhorar seus resultados?</h2>
+          <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
+            Comece agora mesmo a utilizar o NOG Dashboard e leve sua 
+            gestão de marketing digital para o próximo nível.
+          </p>
+          <Link to="/login">
+            <Button size="lg" variant="secondary">
+              Criar Conta Grátis
+            </Button>
+          </Link>
+        </div>
+      </section>
+      
+      {/* Footer */}
+      <footer className="bg-background py-12 px-4 border-t mt-auto">
+        <div className="container mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-2 mb-4 md:mb-0">
+              <img 
+                src="/placeholder.svg" 
+                alt="NOG Performance" 
+                className="h-8 w-8"
+              />
+              <span className="font-semibold">NOG Performance</span>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground text-center md:text-right">
+                © {new Date().getFullYear()} NOG Performance. Todos os direitos reservados.
+              </p>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );

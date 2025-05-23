@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAdsData } from '@/hooks/useAdsData';
 import { Button } from "@/components/ui/button";
 import { 
@@ -8,13 +8,14 @@ import {
   TabsList, 
   TabsTrigger 
 } from "@/components/ui/tabs";
-import { RefreshCw, Users, DollarSign, LineChart, BarChart, TrendingUp } from 'lucide-react';
-import KPIBox from './KPIBox';
+import { RefreshCw } from 'lucide-react';
 import FiltroPeriodo from './FiltroPeriodo';
 import GraficoEvolucao from './GraficoEvolucao';
 import GraficoCanais from './GraficoCanais';
 import Observacoes from './Observacoes';
 import Insights from './Insights';
+import DashboardKPIs from './DashboardKPIs';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface PainelControleProps {
   userType: 'agency' | 'client';
@@ -33,14 +34,6 @@ const PainelControle: React.FC<PainelControleProps> = ({ userType }) => {
     setAtualizando(true);
     await atualizarDados();
     setAtualizando(false);
-  };
-
-  const formatarValorMonetario = (valor: number) => {
-    return new Intl.NumberFormat('pt-BR', { 
-      style: 'currency', 
-      currency: 'BRL',
-      minimumFractionDigits: 2
-    }).format(valor);
   };
 
   if (erro) {
@@ -85,42 +78,7 @@ const PainelControle: React.FC<PainelControleProps> = ({ userType }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPIBox
-          titulo="Total de Leads"
-          valor={dados ? dados.totalLeads.toLocaleString('pt-BR') : '0'}
-          descricao={`Período: ${periodo} dias`}
-          tendencia={{ valor: 12.5, positiva: true }}
-          icone={<Users />}
-          carregando={carregando}
-        />
-        <KPIBox
-          titulo="CPL Médio"
-          valor={dados ? formatarValorMonetario(parseFloat(dados.cplMedio)) : 'R$ 0,00'}
-          descricao="Média do período atual"
-          tendencia={{ valor: 5.2, positiva: true }}
-          icone={<DollarSign />}
-          carregando={carregando}
-        />
-        <KPIBox
-          titulo="CTR Médio"
-          valor={dados ? `${parseFloat(dados.ctrMedio).toFixed(2)}%` : '0%'}
-          descricao="Taxa de cliques por impressão"
-          tendencia={{ valor: 8.7, positiva: true }}
-          icone={<LineChart />}
-          carregando={carregando}
-          corIcone="text-blue-500"
-        />
-        <KPIBox
-          titulo="Receita Gerada"
-          valor={dados ? formatarValorMonetario(dados.totalReceita) : 'R$ 0,00'}
-          descricao="Valor atribuído à conversão"
-          tendencia={{ valor: 15.3, positiva: true }}
-          icone={<TrendingUp />}
-          carregando={carregando}
-          corIcone="text-green-500"
-        />
-      </div>
+      <DashboardKPIs loading={carregando} userType={userType} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <GraficoEvolucao 
@@ -186,7 +144,14 @@ const PainelControle: React.FC<PainelControleProps> = ({ userType }) => {
           </TabsList>
         </Tabs>
 
-        <Insights dados={dados} carregando={carregando} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Insights e Recomendações</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Insights dados={dados} carregando={carregando} />
+          </CardContent>
+        </Card>
       </div>
 
       {userType === 'agency' && (

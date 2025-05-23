@@ -1,8 +1,7 @@
 
 import React, { useEffect } from 'react';
-import { Routes, Route } from "react-router-dom";
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import { Routes, Route } from 'react-router-dom';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import PainelControle from '@/components/dashboard/PainelControle';
 import ConfiguracoesGerais from '@/components/configuracoes/ConfiguracoesGerais';
 import GerenciamentoClientes from '@/components/clientes/GerenciamentoClientes';
@@ -13,17 +12,10 @@ import DetalheCampanha from '@/components/campanhas/DetalheCampanha';
 import Observacoes from '@/components/observacoes/Observacoes';
 import AutomacoesPage from '@/pages/AutomacoesPage';
 import ExportarRelatoriosPage from '@/pages/ExportarRelatoriosPage';
-import { inicializarTema } from '@/utils/themeUtils';
 
 const AgencyDashboard: React.FC = () => {
-  useEffect(() => {
-    inicializarTema();
-  }, []);
-
   return (
     <DashboardLayout userType="agency" brandName="NOG Performance - Agência">
-      <DashboardSidebar userType="agency" />
-      
       <Routes>
         <Route index element={<PainelControle userType="agency" />} />
         <Route path="campanhas" element={<TabelaCampanhas tipoUsuario="agency" />} />
