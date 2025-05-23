@@ -3,8 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import HomePage from "./pages/HomePage";
 import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -25,14 +26,15 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/agency-dashboard/*" element={
-                <ProtectedRoute requiredRole="admin" as UserRole>
+                <ProtectedRoute requiredRole="admin">
                   <AgencyDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/client-dashboard/*" element={
-                <ProtectedRoute requiredRole="client" as UserRole>
+                <ProtectedRoute requiredRole="client">
                   <ClientDashboard />
                 </ProtectedRoute>
               } />

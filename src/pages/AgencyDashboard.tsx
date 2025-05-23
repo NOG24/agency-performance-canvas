@@ -1,7 +1,8 @@
 
 import React, { useEffect } from 'react';
 import { Routes, Route } from "react-router-dom";
-import LayoutPainelControle from '@/components/dashboard/LayoutPainelControle';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import PainelControle from '@/components/dashboard/PainelControle';
 import ConfiguracoesGerais from '@/components/configuracoes/ConfiguracoesGerais';
 import GerenciamentoClientes from '@/components/clientes/GerenciamentoClientes';
@@ -20,7 +21,9 @@ const AgencyDashboard: React.FC = () => {
   }, []);
 
   return (
-    <LayoutPainelControle userType="agency" brandName="NOG Performance - Agência">
+    <DashboardLayout userType="agency" brandName="NOG Performance - Agência">
+      <DashboardSidebar userType="agency" />
+      
       <Routes>
         <Route index element={<PainelControle userType="agency" />} />
         <Route path="campanhas" element={<TabelaCampanhas tipoUsuario="agency" />} />
@@ -35,7 +38,7 @@ const AgencyDashboard: React.FC = () => {
         <Route path="branding" element={<ConfiguracaoWhiteLabel />} />
         <Route path="*" element={<div className="mt-4">Página não encontrada</div>} />
       </Routes>
-    </LayoutPainelControle>
+    </DashboardLayout>
   );
 };
 
