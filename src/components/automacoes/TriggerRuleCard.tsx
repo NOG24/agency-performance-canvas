@@ -1,108 +1,156 @@
 
 import React from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Bell, Edit, ToggleLeft, ToggleRight } from "lucide-react";
-import { Automacao, TipoGatilho } from "@/types/automacoes";
+import { AlertTriangle, ArrowDownCircle, ArrowUpCircle, Check, Clock, DollarSign, Percent, X } from "lucide-react";
+import { cn } from '@/lib/utils';
+import { Automacao, TipoGatilho } from '@/types/automacoes';
 
 interface TriggerRuleCardProps {
   automacao: Automacao;
-  onEdit: (id: string) => void;
-  onToggle: (id: string, active: boolean) => void;
+  className?: string;
+  onToggleStatus?: (id: string, novoStatus: 'ativo' | 'pausado') => void;
 }
 
-const gatilhoLabels: Record<TipoGatilho, string> = {
-  'gasto_excessivo': 'Gasto Excessivo',
-  'cpl_alto': 'CPL Alto',
-  'ctr_baixo': 'CTR Baixo',
-  'roas_baixo': 'ROAS Baixo'
-};
-
-const TriggerRuleCard: React.FC<TriggerRuleCardProps> = ({ 
-  automacao, 
-  onEdit, 
-  onToggle 
+const TriggerRuleCard: React.FC<TriggerRuleCardProps> = ({
+  automacao,
+  className,
+  onToggleStatus
 }) => {
-  const { id, nome, gatilho, valorLimite, status, clienteNome, acao } = automacao;
-  const isActive = status === 'ativa';
-
-  const getGatilhoIcon = () => {
-    switch(gatilho) {
-      case 'gasto_excessivo':
-        return <AlertTriangle className="h-5 w-5 text-red-500" />;
-      case 'cpl_alto':
-        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-      case 'ctr_baixo':
-        return <AlertTriangle className="h-5 w-5 text-blue-500" />;
-      case 'roas_baixo':
-        return <AlertTriangle className="h-5 w-5 text-purple-500" />;
+  const { gatilho, valorLimite, status, clienteNome } = automacao;
+  
+  const getGatilhoInfo = () => {
+    switch (gatilho) {
+      case 'cpl_acima':
+        return {
+          nome: 'CPL acima do limite',
+          icone: <ArrowUpCircle className="h-5 w-5 text-amber-500" />,
+          valor: `> R$ ${valorLimite?.toFixed(2)}`,
+          classe: 'bg-amber-50 border-amber-200'
+        };
+      case 'cpl_abaixo':
+        return {
+          nome: 'CPL abaixo do limite',
+          icone: <ArrowDownCircle className="h-5 w-5 text-green-500" />,
+          valor: `< R$ ${valorLimite?.toFixed(2)}`,
+          classe: 'bg-green-50 border-green-200'
+        };
+      case 'ctr_abaixo':
+        return {
+          nome: 'CTR abaixo do limite',
+          icone: <Percent className="h-5 w-5 text-red-500" />,
+          valor: `< ${valorLimite?.toFixed(2)}%`,
+          classe: 'bg-red-50 border-red-200'
+        };
+      case 'conversoes_abaixo':
+        return {
+          nome: 'Conversões abaixo do limite',
+          icone: <ArrowDownCircle className="h-5 w-5 text-red-500" />,
+          valor: `< ${valorLimite}`,
+          classe: 'bg-red-50 border-red-200'
+        };
+      case 'orcamento_consumido':
+        return {
+          nome: 'Orçamento consumido',
+          icone: <DollarSign className="h-5 w-5 text-blue-500" />,
+          valor: `${valorLimite}%`,
+          classe: 'bg-blue-50 border-blue-200'
+        };
       default:
-        return <Bell className="h-5 w-5 text-muted-foreground" />;
+        return {
+          nome: 'Regra não definida',
+          icone: <AlertTriangle className="h-5 w-5 text-gray-500" />,
+          valor: '-',
+          classe: 'bg-gray-50 border-gray-200'
+        };
     }
   };
-
-  const getBadgeColor = () => {
-    switch(gatilho) {
-      case 'gasto_excessivo': return 'bg-red-100 text-red-800';
-      case 'cpl_alto': return 'bg-amber-100 text-amber-800';
-      case 'ctr_baixo': return 'bg-blue-100 text-blue-800';
-      case 'roas_baixo': return 'bg-purple-100 text-purple-800';
-      default: return '';
+  
+  const getAcaoIcon = () => {
+    switch (automacao.acao) {
+      case 'notificar':
+      case 'email':
+      case 'notificacao':
+        return <AlertTriangle className="h-5 w-5 text-orange-500" />;
+      case 'pausar':
+        return <Clock className="h-5 w-5 text-red-500" />;
+      case 'ajustar_orcamento':
+        return <DollarSign className="h-5 w-5 text-blue-500" />;
+      default:
+        return <AlertTriangle className="h-5 w-5 text-gray-500" />;
     }
   };
+  
+  const getAcaoLabel = () => {
+    switch (automacao.acao) {
+      case 'notificar':
+        return 'Notificar equipe';
+      case 'email':
+        return 'Enviar email';
+      case 'notificacao':
+        return 'Enviar notificação';
+      case 'pausar':
+        return 'Pausar campanha';
+      case 'ajustar_orcamento':
+        return 'Ajustar orçamento';
+      default:
+        return 'Ação desconhecida';
+    }
+  };
+  
+  const gatilhoInfo = getGatilhoInfo();
 
   return (
-    <Card className={`${!isActive ? 'opacity-70' : ''}`}>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between">
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            {getGatilhoIcon()}
-            {nome}
-          </CardTitle>
-          <Badge variant={isActive ? "default" : "outline"}>
-            {isActive ? "Ativo" : "Inativo"}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div>
-          <p className="text-sm text-muted-foreground">Cliente: {clienteNome}</p>
-        </div>
-        
-        <div className="flex gap-2">
-          {gatilho && (
-            <span className={`text-xs px-2 py-1 rounded-full ${getBadgeColor()}`}>
-              {gatilhoLabels[gatilho]} {valorLimite && `> ${valorLimite}`}
-            </span>
-          )}
+    <Card className={cn("border-2 overflow-hidden h-full", className)}>
+      <CardContent className="p-4">
+        <div className="flex flex-col h-full">
+          <div className="flex justify-between items-start mb-2">
+            <div className="font-medium text-sm text-gray-500">Cliente</div>
+            {onToggleStatus && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-7 px-2",
+                  status === 'ativo' ? "text-green-600" : "text-gray-400"
+                )}
+                onClick={() => onToggleStatus(automacao.id, status === 'ativo' ? 'pausado' : 'ativo')}
+              >
+                {status === 'ativo' ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1" /> Ativo
+                  </>
+                ) : (
+                  <>
+                    <X className="h-4 w-4 mr-1" /> Pausado
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+          <div className="text-lg font-semibold mb-4 line-clamp-1">{clienteNome}</div>
           
-          {acao && (
-            <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800">
-              {acao === 'email' ? 'Email' : acao === 'notificacao' ? 'Notificação' : 'Alerta'}
-            </span>
-          )}
+          <div className={cn("rounded-md p-3 mb-4", gatilhoInfo.classe)}>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                {gatilhoInfo.icone}
+                <div className="font-medium">{gatilhoInfo.nome}</div>
+              </div>
+              <div className="font-bold">{gatilhoInfo.valor}</div>
+            </div>
+          </div>
+          
+          <div className="mt-auto">
+            <div className="text-sm font-medium mb-1 text-gray-500">
+              Ação
+            </div>
+            <div className="flex items-center gap-2">
+              {getAcaoIcon()}
+              <span>{getAcaoLabel()}</span>
+            </div>
+          </div>
         </div>
       </CardContent>
-      <CardFooter className="pt-0 flex justify-between">
-        <Button variant="outline" size="sm" onClick={() => onEdit(id)}>
-          <Edit className="h-4 w-4 mr-1" />
-          Editar
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => onToggle(id, !isActive)}
-          className="text-muted-foreground"
-        >
-          {isActive ? (
-            <ToggleRight className="h-5 w-5 mr-1" />
-          ) : (
-            <ToggleLeft className="h-5 w-5 mr-1" />
-          )}
-          {isActive ? "Desativar" : "Ativar"}
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

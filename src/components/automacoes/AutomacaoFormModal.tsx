@@ -1,300 +1,284 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { 
-  Automacao, 
-  TipoAutomacao, 
-  FrequenciaAutomacao, 
-  StatusAutomacao, 
-  TipoGatilho,
-  AcaoAutomacao 
-} from '@/types/automacoes';
-
-interface Cliente {
-  id: string;
-  nome: string;
-  email: string;
-}
-
-interface Campanha {
-  id: string;
-  nome: string;
-  clienteId: string;
-}
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Automacao, TipoAutomacao, FrequenciaAutomacao, AcaoAutomacao, TipoGatilho } from '@/types/automacoes';
 
 interface AutomacaoFormModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  formData: {
-    nome: string;
-    tipo: TipoAutomacao;
-    frequencia: FrequenciaAutomacao;
-    clienteId: string;
-    clienteNome: string;
-    destinatarios: string[];
-    campanhasIds: string[];
-    status: StatusAutomacao;
-    mensagemPersonalizada: string;
-    gatilho?: TipoGatilho;
-    valorLimite?: number;
-    acao: AcaoAutomacao;
-  };
-  setFormData: React.Dispatch<React.SetStateAction<{
-    nome: string;
-    tipo: TipoAutomacao;
-    frequencia: FrequenciaAutomacao;
-    clienteId: string;
-    clienteNome: string;
-    destinatarios: string[];
-    campanhasIds: string[];
-    status: StatusAutomacao;
-    mensagemPersonalizada: string;
-    gatilho?: TipoGatilho;
-    valorLimite?: number;
-    acao: AcaoAutomacao;
-  }>>;
-  onSave: () => void;
-  editingAutomacao: Automacao | null;
-  clientes: Cliente[];
-  campanhas: Campanha[];
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (automacao: Automacao) => void;
+  automacao: Partial<Automacao> | null;
 }
 
-export const AutomacaoFormModal: React.FC<AutomacaoFormModalProps> = ({
-  open,
-  onOpenChange,
-  formData,
-  setFormData,
+const AutomacaoFormModal: React.FC<AutomacaoFormModalProps> = ({
+  isOpen,
+  onClose,
   onSave,
-  editingAutomacao,
-  clientes,
-  campanhas
+  automacao
 }) => {
-  const handleTipoChange = (tipo: TipoAutomacao) => {
-    const newForm = { ...formData, tipo };
-    
-    if (tipo === 'dashboard' && !newForm.gatilho) {
-      newForm.gatilho = 'cpl_alto';
-      newForm.acao = 'alerta';
-    } else if (tipo === 'email') {
-      delete newForm.gatilho;
-      delete newForm.valorLimite;
-      newForm.acao = 'email';
+  const [formData, setFormData] = useState<Partial<Automacao>>({
+    nome: '',
+    tipo: 'alerta',
+    frequencia: 'diario',
+    clienteId: '',
+    clienteNome: '',
+    destinatarios: [],
+    campanhasIds: [],
+    status: 'ativo',
+    mensagemPersonalizada: '',
+    acao: 'notificar'
+  });
+  
+  const [destinatarios, setDestinatarios] = useState('');
+  const [campanhas, setCampanhas] = useState('');
+  const [clienteOptions] = useState([
+    { id: 'client1', nome: 'E-commerce XYZ' },
+    { id: 'client2', nome: 'Loja Virtual ABC' },
+    { id: 'client3', nome: 'Serviços Tech' },
+    { id: 'client4', nome: 'Academia Fitness Pro' }
+  ]);
+  
+  // Inicializar o formulário quando tiver uma automação para editar
+  useEffect(() => {
+    if (automacao) {
+      setFormData({
+        ...automacao
+      });
+      
+      if (automacao.destinatarios) {
+        setDestinatarios(automacao.destinatarios.join(', '));
+      }
+      
+      if (automacao.campanhasIds) {
+        setCampanhas(automacao.campanhasIds.join(', '));
+      }
+    } else {
+      resetForm();
     }
-    
-    setFormData(newForm);
+  }, [automacao]);
+  
+  const resetForm = () => {
+    setFormData({
+      nome: '',
+      tipo: 'alerta',
+      frequencia: 'diario',
+      clienteId: '',
+      clienteNome: '',
+      destinatarios: [],
+      campanhasIds: [],
+      status: 'ativo',
+      mensagemPersonalizada: '',
+      acao: 'notificar'
+    });
+    setDestinatarios('');
+    setCampanhas('');
+  };
+  
+  const handleChange = (field: keyof Automacao, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
   
   const handleClienteChange = (clienteId: string) => {
-    const cliente = clientes.find(c => c.id === clienteId);
-    setFormData({
-      ...formData,
+    const cliente = clienteOptions.find(c => c.id === clienteId);
+    setFormData(prev => ({
+      ...prev,
       clienteId,
-      clienteNome: cliente ? cliente.nome : '',
-      campanhasIds: []
-    });
+      clienteNome: cliente?.nome || ''
+    }));
   };
   
-  const getCampanhasPorCliente = (clienteId: string) => {
-    return campanhas.filter(c => c.clienteId === clienteId);
+  const handleSave = () => {
+    const destinatariosArray = destinatarios
+      .split(',')
+      .map(email => email.trim())
+      .filter(email => email.length > 0);
+      
+    const campanhasArray = campanhas
+      .split(',')
+      .map(id => id.trim())
+      .filter(id => id.length > 0);
+    
+    const automacaoCompleta = {
+      ...formData,
+      id: formData.id || `auto_${Date.now()}`,
+      destinatarios: destinatariosArray,
+      campanhasIds: campanhasArray
+    } as Automacao;
+    
+    onSave(automacaoCompleta);
   };
-
+  
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{editingAutomacao ? 'Editar Automação' : 'Nova Automação'}</DialogTitle>
-          <DialogDescription>
-            {editingAutomacao 
-              ? 'Atualize os detalhes da sua automação abaixo.'
-              : 'Configure uma nova automação para envio de relatórios ou alertas de performance.'}
-          </DialogDescription>
+          <DialogTitle>{automacao ? 'Editar Automação' : 'Nova Automação'}</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="tipo">Tipo de Automação</Label>
-            <Select
-              value={formData.tipo}
-              onValueChange={(value) => handleTipoChange(value as TipoAutomacao)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="email">Relatório Automático</SelectItem>
-                <SelectItem value="dashboard">Gatilho de Performance</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome da automação</Label>
+              <Input
+                id="nome"
+                placeholder="Nome da automação"
+                value={formData.nome}
+                onChange={(e) => handleChange('nome', e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="tipo">Tipo</Label>
+              <Select
+                value={formData.tipo}
+                onValueChange={(value) => handleChange('tipo', value as TipoAutomacao)}
+              >
+                <SelectTrigger id="tipo">
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alerta">Alerta</SelectItem>
+                  <SelectItem value="relatorio">Relatório</SelectItem>
+                  <SelectItem value="otimizacao">Otimização</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
-          <div className="grid gap-2">
-            <Label htmlFor="nome">Nome da Automação</Label>
-            <Input
-              id="nome"
-              value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              placeholder="Ex: Relatório Mensal de Performance"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="cliente">Cliente</Label>
+              <Select
+                value={formData.clienteId}
+                onValueChange={handleClienteChange}
+              >
+                <SelectTrigger id="cliente">
+                  <SelectValue placeholder="Selecione o cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clienteOptions.map((cliente) => (
+                    <SelectItem key={cliente.id} value={cliente.id}>
+                      {cliente.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="frequencia">Frequência</Label>
+              <Select
+                value={formData.frequencia}
+                onValueChange={(value) => handleChange('frequencia', value as FrequenciaAutomacao)}
+              >
+                <SelectTrigger id="frequencia">
+                  <SelectValue placeholder="Selecione a frequência" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tempo_real">Tempo real</SelectItem>
+                  <SelectItem value="diario">Diário</SelectItem>
+                  <SelectItem value="semanal">Semanal</SelectItem>
+                  <SelectItem value="mensal">Mensal</SelectItem>
+                  <SelectItem value="manual">Manual</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
-          <div className="grid gap-2">
-            <Label htmlFor="cliente">Cliente</Label>
-            <Select 
-              value={formData.clienteId}
-              onValueChange={handleClienteChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clientes.map((cliente) => (
-                  <SelectItem key={cliente.id} value={cliente.id}>
-                    {cliente.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {formData.clienteId && (
-            <div className="grid gap-2">
-              <Label>Campanhas</Label>
-              <div className="border rounded-md p-3 space-y-2 max-h-40 overflow-y-auto">
-                {getCampanhasPorCliente(formData.clienteId).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhuma campanha disponível para este cliente.</p>
-                ) : (
-                  getCampanhasPorCliente(formData.clienteId).map((campanha) => (
-                    <div key={campanha.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`campanha-${campanha.id}`}
-                        checked={formData.campanhasIds.includes(campanha.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFormData({
-                              ...formData,
-                              campanhasIds: [...formData.campanhasIds, campanha.id]
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              campanhasIds: formData.campanhasIds.filter(id => id !== campanha.id)
-                            });
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor={`campanha-${campanha.id}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {campanha.nome}
-                      </Label>
-                    </div>
-                  ))
-                )}
+          {formData.tipo === 'alerta' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="gatilho">Gatilho</Label>
+                <Select
+                  value={formData.gatilho || ''}
+                  onValueChange={(value) => handleChange('gatilho', value as TipoGatilho)}
+                >
+                  <SelectTrigger id="gatilho">
+                    <SelectValue placeholder="Selecione o gatilho" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cpl_acima">CPL acima do limite</SelectItem>
+                    <SelectItem value="cpl_abaixo">CPL abaixo do limite</SelectItem>
+                    <SelectItem value="ctr_abaixo">CTR abaixo do limite</SelectItem>
+                    <SelectItem value="conversoes_abaixo">Conversões abaixo do limite</SelectItem>
+                    <SelectItem value="orcamento_consumido">Orçamento consumido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="valorLimite">Valor limite</Label>
+                <Input
+                  id="valorLimite"
+                  type="number"
+                  placeholder="Valor limite"
+                  value={formData.valorLimite || ''}
+                  onChange={(e) => handleChange('valorLimite', parseFloat(e.target.value))}
+                />
               </div>
             </div>
           )}
           
-          {formData.tipo === 'email' ? (
-            <>
-              <div className="grid gap-2">
-                <Label htmlFor="frequencia">Frequência</Label>
-                <Select
-                  value={formData.frequencia}
-                  onValueChange={(value) => setFormData({ ...formData, frequencia: value as FrequenciaAutomacao })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a frequência" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="diaria">Diária</SelectItem>
-                    <SelectItem value="semanal">Semanal</SelectItem>
-                    <SelectItem value="mensal">Mensal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="mensagemPersonalizada">Mensagem Personalizada</Label>
-                <Textarea
-                  id="mensagemPersonalizada"
-                  value={formData.mensagemPersonalizada}
-                  onChange={(e) => setFormData({ ...formData, mensagemPersonalizada: e.target.value })}
-                  placeholder="Mensagem que será incluída no email com o relatório"
-                  rows={3}
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="grid gap-2">
-                <Label htmlFor="gatilho">Gatilho</Label>
-                <Select
-                  value={formData.gatilho}
-                  onValueChange={(value) => setFormData({ ...formData, gatilho: value as TipoGatilho })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o gatilho" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cpl_alto">CPL Alto</SelectItem>
-                    <SelectItem value="gasto_excessivo">Gasto Excessivo</SelectItem>
-                    <SelectItem value="ctr_baixo">CTR Baixo</SelectItem>
-                    <SelectItem value="roas_baixo">ROAS Baixo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="valorLimite">Valor Limite</Label>
-                <Input
-                  id="valorLimite"
-                  type="number"
-                  value={formData.valorLimite || ''}
-                  onChange={(e) => setFormData({ ...formData, valorLimite: Number(e.target.value) })}
-                  placeholder="Ex: 50 para CPL alto de R$ 50"
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="acao">Ação</Label>
-                <Select
-                  value={formData.acao}
-                  onValueChange={(value) => setFormData({ ...formData, acao: value as AcaoAutomacao })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a ação" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="alerta">Apenas Alerta Visual</SelectItem>
-                    <SelectItem value="notificacao">Notificação no Painel</SelectItem>
-                    <SelectItem value="email">Enviar Email</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="destinatarios">Destinatários (separados por vírgula)</Label>
+              <Input
+                id="destinatarios"
+                placeholder="email1@exemplo.com, email2@exemplo.com"
+                value={destinatarios}
+                onChange={(e) => setDestinatarios(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="acao">Ação</Label>
+              <Select
+                value={formData.acao}
+                onValueChange={(value) => handleChange('acao', value as AcaoAutomacao)}
+              >
+                <SelectTrigger id="acao">
+                  <SelectValue placeholder="Selecione a ação" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="notificar">Notificar</SelectItem>
+                  <SelectItem value="email">Enviar email</SelectItem>
+                  <SelectItem value="pausar">Pausar campanha</SelectItem>
+                  <SelectItem value="ajustar_orcamento">Ajustar orçamento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="status"
-              checked={formData.status === 'ativa'}
-              onCheckedChange={(checked) => setFormData({ ...formData, status: checked ? 'ativa' : 'pausada' })}
+          <div className="space-y-2">
+            <Label htmlFor="campanhas">IDs das Campanhas (separados por vírgula)</Label>
+            <Input
+              id="campanhas"
+              placeholder="camp1, camp2, camp3"
+              value={campanhas}
+              onChange={(e) => setCampanhas(e.target.value)}
             />
-            <Label htmlFor="status">Automação ativa</Label>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="mensagem">Mensagem personalizada</Label>
+            <Textarea
+              id="mensagem"
+              placeholder="Mensagem que será enviada junto com a notificação"
+              rows={3}
+              value={formData.mensagemPersonalizada}
+              onChange={(e) => handleChange('mensagemPersonalizada', e.target.value)}
+            />
           </div>
         </div>
         
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={onSave}>Salvar</Button>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={handleSave}>Salvar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

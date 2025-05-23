@@ -1,123 +1,96 @@
 
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
-import AutomationBoard from '@/components/automacoes/AutomationBoard';
-import HistoricoTab from '@/components/automacoes/HistoricoTab';
-import AlertNotificationModal from '@/components/automacoes/AlertNotificationModal';
-import AutomacaoFormModal from '@/components/automacoes/AutomacaoFormModal';
-import { useAutomacoes } from '@/components/automacoes/AutomacaoHooks';
-import { Automacao, TipoGatilho } from '@/types/automacoes';
-import { clientes, campanhas } from '@/components/automacoes/MockData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PageHeader from "@/components/dashboard/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Plus, AlertTriangle } from "lucide-react";
+import ListaAutomacoes from "@/components/automacoes/ListaAutomacoes";
+import AutomacaoFormModal from "@/components/automacoes/AutomacaoFormModal";
+import HistoricoTab from "@/components/automacoes/HistoricoTab";
+import { useToast } from "@/components/ui/use-toast";
+import { Automacao } from '@/types/automacoes';
 
-// This is a refactored component that has been split into smaller parts
 const AutomacoesPage: React.FC = () => {
-  // Estado para os modais
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingAutomacao, setEditingAutomacao] = useState<Automacao | null>(null);
-  const [showAlertModal, setShowAlertModal] = useState(false);
-  
-  // Estado para informações de alerta
-  const [alertInfo, setAlertInfo] = useState({
-    title: '',
-    message: '',
-    type: 'cpl_alto' as TipoGatilho | 'success',
-    campaignName: '',
-    metric: '',
-    value: 0,
-    threshold: 0
-  });
-  
-  // Usar o hook de automações
-  const { 
-    automacoes, 
-    historico, 
-    formData, 
-    setFormData,
-    handleCreateAutomation,
-    handleEditAutomation,
-    handleSaveAutomation
-  } = useAutomacoes();
-  
-  const handleShowAlert = () => {
-    setAlertInfo({
-      title: 'CPL Alto Detectado',
-      message: 'O CPL da campanha está significativamente acima do limite estabelecido.',
-      type: 'cpl_alto',
-      campaignName: 'Instagram Stories',
-      metric: 'CPL',
-      value: 65.30,
-      threshold: 50
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('automacoes');
+  const [automacaoEditando, setAutomacaoEditando] = useState<Partial<Automacao> | null>(null);
+  const { toast } = useToast();
+
+  const handleAddClick = () => {
+    setAutomacaoEditando(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditAutomacao = (automacao: Automacao) => {
+    setAutomacaoEditando(automacao);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setAutomacaoEditando(null);
+  };
+
+  const handleSaveAutomacao = () => {
+    toast({
+      title: automacaoEditando ? "Automação atualizada" : "Automação criada",
+      description: automacaoEditando
+        ? "A automação foi atualizada com sucesso."
+        : "A nova automação foi criada com sucesso.",
     });
-    setShowAlertModal(true);
-  };
-  
-  const onCreateAutomation = () => {
-    setEditingAutomacao(null);
-    handleCreateAutomation(null, setShowAddModal);
-  };
-  
-  const onEditAutomation = (automacao: Automacao) => {
-    handleEditAutomation(automacao, setEditingAutomacao, setShowAddModal);
-  };
-  
-  const onSaveAutomation = () => {
-    handleSaveAutomation(editingAutomacao, setShowAddModal);
+    setIsModalOpen(false);
+    setAutomacaoEditando(null);
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Automações</h1>
-        <Button onClick={onCreateAutomation}>Nova Automação</Button>
+    <div className="space-y-6">
+      <PageHeader
+        title="Automações"
+        description="Configure regras automatizadas para otimização de campanhas"
+      >
+        <Button onClick={handleAddClick}>
+          <Plus className="mr-2 h-4 w-4" /> Nova Automação
+        </Button>
+      </PageHeader>
+
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <AlertTriangle className="h-5 w-5 text-yellow-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-yellow-700">
+              <span className="font-medium">Importante:</span> As automações funcionam com base nas regras configuradas. 
+              Verifique sempre as condições antes de ativar uma automação.
+            </p>
+          </div>
+        </div>
       </div>
-      
-      <Tabs defaultValue="automacoes">
-        <TabsList className="mb-4">
+
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <TabsList>
           <TabsTrigger value="automacoes">Automações Ativas</TabsTrigger>
-          <TabsTrigger value="historico">Histórico de Execuções</TabsTrigger>
+          <TabsTrigger value="historico">Histórico de Execução</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="automacoes">
-          <AutomationBoard 
-            automacoes={automacoes}
-            onCreateAutomation={onCreateAutomation}
-            onEditAutomation={onEditAutomation}
-          />
+
+        <TabsContent value="automacoes" className="space-y-6 mt-6">
+          <ListaAutomacoes onEdit={handleEditAutomacao} />
         </TabsContent>
-        
-        <TabsContent value="historico">
-          <HistoricoTab 
-            historico={historico}
-            onShowAlert={handleShowAlert}
-          />
+
+        <TabsContent value="historico" className="space-y-6 mt-6">
+          <HistoricoTab />
         </TabsContent>
       </Tabs>
-      
-      {/* Modal de adicionar/editar automação */}
+
       <AutomacaoFormModal
-        open={showAddModal}
-        onOpenChange={setShowAddModal}
-        formData={formData}
-        setFormData={setFormData}
-        onSave={onSaveAutomation}
-        editingAutomacao={editingAutomacao}
-        clientes={clientes}
-        campanhas={campanhas}
-      />
-      
-      {/* Modal de alerta */}
-      <AlertNotificationModal
-        open={showAlertModal}
-        onClose={() => setShowAlertModal(false)}
-        title={alertInfo.title}
-        message={alertInfo.message}
-        type={alertInfo.type as any}
-        campaignName={alertInfo.campaignName}
-        metric={alertInfo.metric}
-        value={alertInfo.value}
-        threshold={alertInfo.threshold}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveAutomacao}
+        automacao={automacaoEditando}
       />
     </div>
   );

@@ -1,54 +1,36 @@
 
-export type TipoAutomacao = 'email' | 'dashboard';
-export type FrequenciaAutomacao = 'diaria' | 'semanal' | 'mensal';
-export type StatusAutomacao = 'ativa' | 'pausada';
-export type StatusExecucao = 'sucesso' | 'falha' | 'pendente' | 'em_andamento';
-export type TipoGatilho = 'gasto_excessivo' | 'cpl_alto' | 'ctr_baixo' | 'roas_baixo';
-export type AcaoAutomacao = 'alerta' | 'email' | 'notificacao' | 'pausar' | 'notificar' | 'ajustar_orcamento';
-
 export interface Automacao {
   id: string;
   nome: string;
-  descricao?: string;
-  regra?: string;
-  campanha_id?: string;
-  tipo_alerta?: 'email' | 'notificacao' | 'ambos';
-  acao: AcaoAutomacao;
-  ativo?: boolean;
-  condicao?: 'maior_que' | 'menor_que' | 'igual_a';
-  valor_condicao?: number;
-  mensagemPersonalizada?: string;
-  criado_em?: string;
-  
-  // Additional properties needed by components
-  tipo?: TipoAutomacao;
-  frequencia?: FrequenciaAutomacao;
-  ultimaExecucao?: string | null;
+  tipo: TipoAutomacao;
+  frequencia: FrequenciaAutomacao;
+  ultimaExecucao?: string;
   proximaExecucao?: string;
-  destinatarios?: string[];
-  clienteId?: string;
-  clienteNome?: string;
-  campanhasIds?: string[];
-  status?: StatusAutomacao;
+  destinatarios: string[];
+  clienteId: string;
+  clienteNome: string;
+  campanhasIds: string[];
+  status: StatusAutomacao;
+  mensagemPersonalizada: string;
   gatilho?: TipoGatilho;
   valorLimite?: number;
+  acao: AcaoAutomacao;
 }
 
-export interface ExecucaoAutomacao {
-  id: string;
-  automacao_id: string;
-  data_execucao: string;
-  status: StatusExecucao;
-  detalhes: string;
-  responsavel?: string;
-}
+export type TipoAutomacao = 'relatorio' | 'alerta' | 'otimizacao';
+export type FrequenciaAutomacao = 'diario' | 'semanal' | 'mensal' | 'tempo_real' | 'manual';
+export type StatusAutomacao = 'ativo' | 'pausado' | 'finalizado' | 'aguardando';
+export type TipoGatilho = 'cpl_acima' | 'cpl_abaixo' | 'ctr_abaixo' | 'conversoes_abaixo' | 'orcamento_consumido';
+export type AcaoAutomacao = 'pausar' | 'notificar' | 'ajustar_orcamento' | 'email' | 'notificacao' | 'alerta';
 
 export interface HistoricoExecucao {
   id: string;
   automacaoId: string;
   automacaoNome: string;
-  dataExecucao: string;
+  data: string;
   status: StatusExecucao;
-  destinatarios: string[];
   mensagem: string;
+  detalhes?: string;
 }
+
+export type StatusExecucao = 'sucesso' | 'erro' | 'pendente';
