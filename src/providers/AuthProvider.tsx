@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole, Permission, createPermissionGuard } from '@/utils/permissionsSystem';
 import { supabase } from '@/utils/supabaseClient';
@@ -14,7 +13,7 @@ interface AuthContextType {
   canAccess: (route: string) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   login: async () => {},
@@ -179,4 +178,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-export default AuthProvider;
+export default AuthContext;

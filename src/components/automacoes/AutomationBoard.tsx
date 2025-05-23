@@ -14,17 +14,19 @@ interface AutomationBoardProps {
 }
 
 const gatilhoLabels: Record<TipoGatilho, string> = {
-  'gasto_excessivo': 'Gasto Excessivo',
-  'cpl_alto': 'CPL Alto',
-  'ctr_baixo': 'CTR Baixo',
-  'roas_baixo': 'ROAS Baixo'
+  'cpl_acima': 'CPL Alto',
+  'cpl_abaixo': 'CPL Baixo',
+  'ctr_abaixo': 'CTR Baixo',
+  'conversoes_abaixo': 'Conversões Baixas',
+  'orcamento_consumido': 'Orçamento Consumido'
 };
 
 const gatilhoCores: Record<TipoGatilho, string> = {
-  'gasto_excessivo': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  'cpl_alto': 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-  'ctr_baixo': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  'roas_baixo': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+  'cpl_acima': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  'cpl_abaixo': 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+  'ctr_abaixo': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  'conversoes_abaixo': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+  'orcamento_consumido': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
 };
 
 export const AutomationBoard: React.FC<AutomationBoardProps> = ({
@@ -32,7 +34,7 @@ export const AutomationBoard: React.FC<AutomationBoardProps> = ({
   onCreateAutomation,
   onEditAutomation
 }) => {
-  const emailAutomacoes = automacoes.filter(auto => auto.tipo === 'email');
+  const emailAutomacoes = automacoes.filter(auto => auto.tipo === 'relatorio');
   const gatilhoAutomacoes = automacoes.filter(auto => auto.gatilho);
 
   return (
@@ -73,15 +75,15 @@ export const AutomationBoard: React.FC<AutomationBoardProps> = ({
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-base font-medium">{automacao.nome}</CardTitle>
-                      <Badge variant={automacao.status === 'ativa' ? 'default' : 'outline'}>
-                        {automacao.status === 'ativa' ? 'Ativa' : 'Pausada'}
+                      <Badge variant={automacao.status === 'ativo' ? 'default' : 'outline'}>
+                        {automacao.status === 'ativo' ? 'Ativa' : 'Pausada'}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <p className="text-sm text-muted-foreground">Cliente: {automacao.clienteNome}</p>
                     <p className="text-sm text-muted-foreground">
-                      Frequência: {automacao.frequencia === 'diaria' ? 'Diária' : 
+                      Frequência: {automacao.frequencia === 'diario' ? 'Diária' : 
                         automacao.frequencia === 'semanal' ? 'Semanal' : 'Mensal'}
                     </p>
                     <p className="text-sm text-muted-foreground">
@@ -122,8 +124,8 @@ export const AutomationBoard: React.FC<AutomationBoardProps> = ({
                       <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" />
                       {automacao.nome}
                     </CardTitle>
-                    <Badge variant={automacao.status === 'ativa' ? 'default' : 'outline'}>
-                      {automacao.status === 'ativa' ? 'Ativo' : 'Pausado'}
+                    <Badge variant={automacao.status === 'ativo' ? 'default' : 'outline'}>
+                      {automacao.status === 'ativo' ? 'Ativo' : 'Pausado'}
                     </Badge>
                   </CardHeader>
                   <CardContent className="space-y-2">
