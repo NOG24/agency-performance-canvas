@@ -1,37 +1,26 @@
 
-export type TipoAutomacao = 'email' | 'dashboard';
-export type FrequenciaAutomacao = 'diaria' | 'semanal' | 'mensal';
-export type StatusAutomacao = 'ativa' | 'pausada';
-export type StatusExecucao = 'sucesso' | 'falha';
-export type TipoGatilho = 'gasto_excessivo' | 'cpl_alto' | 'ctr_baixo' | 'roas_baixo';
-export type AcaoAutomacao = 'alerta' | 'email' | 'notificacao';
-
 export interface Automacao {
   id: string;
   nome: string;
-  tipo: TipoAutomacao;
-  frequencia: FrequenciaAutomacao;
-  ultimaExecucao: string | null;
-  proximaExecucao: string;
-  destinatarios: string[];
-  clienteId: string;
-  clienteNome: string;
-  campanhasIds: string[];
-  status: StatusAutomacao;
+  descricao: string;
+  regra: string;
+  campanha_id: string;
+  tipo_alerta: 'email' | 'notificacao' | 'ambos';
+  acao: 'pausar' | 'notificar' | 'ajustar_orcamento';
+  ativo: boolean;
+  condicao: 'maior_que' | 'menor_que' | 'igual_a';
+  valor_condicao: number;
   mensagemPersonalizada?: string;
-  
-  // Extended properties for automation triggers
-  gatilho?: TipoGatilho;
-  valorLimite?: number;
-  acao?: AcaoAutomacao;
+  criado_em: string;
 }
 
-export interface HistoricoExecucao {
+export type StatusExecucao = 'sucesso' | 'falha' | 'pendente' | 'em_andamento';
+
+export interface ExecucaoAutomacao {
   id: string;
-  automacaoId: string;
-  automacaoNome: string;
-  dataExecucao: string;
+  automacao_id: string;
+  data_execucao: string;
   status: StatusExecucao;
-  destinatarios: string[];
-  mensagem: string;
+  detalhes: string;
+  responsavel?: string;
 }
