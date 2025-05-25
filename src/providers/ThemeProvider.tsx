@@ -14,7 +14,7 @@ interface ThemeContextType {
   secondaryColor: string;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
+export const ThemeContext = createContext<ThemeContextType>({
   theme: 'system',
   colorScheme: 'default',
   setTheme: () => {},

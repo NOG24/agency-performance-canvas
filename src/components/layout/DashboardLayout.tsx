@@ -17,7 +17,6 @@ import { useAuth } from '@/hooks/useAuth';
 import SidebarNavigation from '@/components/ui/sidebar-navigation';
 import { Bell, Menu, LogOut, User, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/hooks/useTheme';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -35,7 +34,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, logout } = useAuth();
-  const { theme } = useTheme();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   const handleLogout = async () => {
