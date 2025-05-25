@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { UserRole } from '@/utils/permissionsSystem';
+import { User } from '@/providers/AuthProvider';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +16,7 @@ const LoginPage: React.FC = () => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole>('client');
+  const [userRole, setUserRole] = useState<User['role']>('client');
   
   const navigate = useNavigate();
   const { login, register } = useAuth();

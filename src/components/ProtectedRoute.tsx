@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/utils/permissionsSystem';
 
 interface ProtectedRouteProps {
@@ -15,10 +15,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   requiredPermission
 }) => {
-  const { user, isLoading, can, canAccess } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
   
-  if (isLoading) {
+  if (loading) {
     // You could render a loading spinner here
     return (
       <div className="flex items-center justify-center h-screen">
@@ -34,20 +34,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
   
   // Check for required role
-  if (requiredRole && user.role !== requiredRole && user.role !== 'admin' && user.role !== 'owner') {
+  if (requiredRole && user.role !== requiredRole && user.role !== 'admin') {
     // User doesn't have the required role
-    return <Navigate to="/unauthorized" replace />;
-  }
-  
-  // Check for required permission
-  if (requiredPermission && !can(requiredPermission as any)) {
-    // User doesn't have the required permission
-    return <Navigate to="/unauthorized" replace />;
-  }
-  
-  // Check if user can access this route based on permissions
-  if (!canAccess(location.pathname)) {
-    // User doesn't have permission to access this route
     return <Navigate to="/unauthorized" replace />;
   }
   
